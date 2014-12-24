@@ -69,8 +69,9 @@ func createStackReq(template, token, keyName string) {
 	}
 	disableRollback := bool(false)
 
+	timestamp := int32(time.Now().Unix())
 	s := &HeatStack{
-		Name:            "corekube-travis",
+		Name:            fmt.Sprintf("corekube-travis-%d", timestamp),
 		Template:        template,
 		Params:          params,
 		Timeout:         timeout,
@@ -92,7 +93,9 @@ func createStackReq(template, token, keyName string) {
 		Headers:         headers,
 	}
 
-	goutils.HttpCreateRequest(h)
+	status, body := goutils.HttpCreateRequest(h)
+	fmt.Printf("status: %d\n", status)
+	fmt.Printf("body: %s\n", body)
 }
 
 func deployStack(templateFile, keyName string) {
@@ -106,7 +109,8 @@ func deployStack(templateFile, keyName string) {
 func waitForStackResult(heatTimeout int) []string {
 	chan1 := make(chan []string, 1)
 	go func() {
-		machines := waitForMachines()
+		//machines := waitForMachines()
+		machines := []string{}
 		chan1 <- machines
 	}()
 
@@ -126,7 +130,7 @@ func testMinionsRegistered(machines []string, k8sTimeout int) {
 func main() {
 	//heatTimeout := 10 // minutes
 	//k8sTimeout := 1   // minutes
-	templateFile := "../corekube-heat.yaml"
+	templateFile := "../../../corekube-heat.yaml"
 	keyName := "argon_dfw"
 
 	deployStack(templateFile, keyName)
