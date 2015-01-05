@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -19,6 +20,20 @@ type HeatStack struct {
 	Params          map[string]string `json:"parameters"`
 	Timeout         int               `json:"timeout_mins"`
 	DisableRollback bool              `json:"disable_rollback"`
+}
+
+type CreateStackResult struct {
+	Stack StackData `json:"stack"`
+}
+
+type StackData struct {
+	Id    string       `json:"id"`
+	Links []StackLinks `json:"links"`
+}
+
+type StackLinks struct {
+	Href string `json:"href"`
+	Rel  string `json:"rel"`
 }
 
 func waitForMachines() {
@@ -59,7 +74,7 @@ func createGitCmdParam() string {
 	return cmd
 }
 
-func createStackReq(template, token, keyName string) {
+func createStackReq(template, token, keyName string) (int, bytes.Buffer) {
 	timeout := int(10)
 	params := map[string]string{
 		"git-command": createGitCmdParam(),
@@ -91,9 +106,8 @@ func createStackReq(template, token, keyName string) {
 		Headers:         headers,
 	}
 
-	status, body := goutils.HttpCreateRequest(h)
-	fmt.Printf("status: %d\n", status)
-	fmt.Printf("body: %s\n", body)
+	statusCode, body := goutils.HttpCreateRequest(h)
+	return statusCode, body
 }
 
 func deployStack(templateFile, keyName string) {
@@ -101,7 +115,16 @@ func deployStack(templateFile, keyName string) {
 	template := string(readfile)
 
 	token := rax.IdentitySetup()
-	createStackReq(template, token.ID, keyName)
+
+	statusCode, body := createStackReq(template, token.ID, keyName)
+
+	switch statusCode {
+	case 201:
+		var result CreateStackResult
+		err := json.Unmarshal(body.Bytes(), &result)
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+		//result.Stack.Links[0].Href
+	}
 }
 
 func waitForStackResult(heatTimeout int) []string {
