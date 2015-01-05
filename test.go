@@ -22,8 +22,6 @@ type HeatStack struct {
 }
 
 func waitForMachines() {
-	// - return body in goutils httpcreaterequest and adjust fleet, k8s & etcd
-	// files accordingly
 	// - store stack_id from response body
 
 	// - do http GET request to stack details
