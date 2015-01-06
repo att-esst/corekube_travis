@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -23,10 +22,10 @@ type HeatStack struct {
 }
 
 type CreateStackResult struct {
-	Stack StackData `json:"stack"`
+	Stack CreateStackResultData `json:"stack"`
 }
 
-type StackData struct {
+type CreateStackResultData struct {
 	Id    string       `json:"id"`
 	Links []StackLinks `json:"links"`
 }
@@ -34,6 +33,49 @@ type StackData struct {
 type StackLinks struct {
 	Href string `json:"href"`
 	Rel  string `json:"rel"`
+}
+
+type StackDetails struct {
+	Stack StackDetailsData `json:"stack"`
+}
+
+type StackDetailsData struct {
+	StackStatus string               `json:"stack_status"`
+	Id          string               `json:"id"`
+	Outputs     []StackDetailsOutput `json:"outputs"`
+}
+
+type StackDetailsOutput struct {
+	OutputValue string `json:"output_value"`
+	Description string `json:"description"`
+	OutputKey   string `json:"output_key"`
+}
+
+func getStackDetails(result CreateStackResult) {
+	var details StackDetails
+	url := result.Stack.Links[0].Href
+	token := rax.IdentitySetup()
+
+	headers := map[string]string{
+		"X-Auth-Token": token.ID,
+		"Content-Type": "application/json",
+	}
+
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	statusCode, bodyBytes := goutils.HttpCreateRequest(p)
+
+	switch statusCode {
+	case 200:
+		err := json.Unmarshal(bodyBytes, &details)
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+		log.Printf("%s", details.Stack.StackStatus)
+		log.Printf("%s", details.Stack.Id)
+	}
 }
 
 func waitForMachines() {
@@ -74,7 +116,7 @@ func createGitCmdParam() string {
 	return cmd
 }
 
-func createStackReq(template, token, keyName string) (int, bytes.Buffer) {
+func createStackReq(template, token, keyName string) (int, []byte) {
 	timeout := int(10)
 	params := map[string]string{
 		"git-command": createGitCmdParam(),
@@ -106,25 +148,25 @@ func createStackReq(template, token, keyName string) (int, bytes.Buffer) {
 		Headers:         headers,
 	}
 
-	statusCode, body := goutils.HttpCreateRequest(h)
-	return statusCode, body
+	statusCode, bodyBytes := goutils.HttpCreateRequest(h)
+	return statusCode, bodyBytes
 }
 
-func deployStack(templateFile, keyName string) {
+func createStack(templateFile, keyName string) CreateStackResult {
 	readfile, _ := ioutil.ReadFile(templateFile)
 	template := string(readfile)
+	var result CreateStackResult
 
 	token := rax.IdentitySetup()
 
-	statusCode, body := createStackReq(template, token.ID, keyName)
+	statusCode, bodyBytes := createStackReq(template, token.ID, keyName)
 
 	switch statusCode {
 	case 201:
-		var result CreateStackResult
-		err := json.Unmarshal(body.Bytes(), &result)
+		err := json.Unmarshal(bodyBytes, &result)
 		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
-		//result.Stack.Links[0].Href
 	}
+	return result
 }
 
 func waitForStackResult(heatTimeout int) []string {
@@ -154,7 +196,8 @@ func main() {
 	templateFile := "../../../corekube-heat.yaml"
 	keyName := "argon_dfw"
 
-	deployStack(templateFile, keyName)
+	result := createStack(templateFile, keyName)
+	getStackDetails(result)
 	//machines := waitForStackResult(heatTimeout)
 	//testMinionsRegistered(machines, k8sTimeout)
 }
