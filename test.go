@@ -8,8 +8,8 @@ import (
 	"os"
 	"strings"
 	"time"
-	"travis/rax"
 
+	"github.com/metral/corekube-travis/rax"
 	"github.com/metral/goutils"
 )
 
