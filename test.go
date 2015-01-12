@@ -207,13 +207,8 @@ func createStack(templateFile, keyName string) CreateStackResult {
 	return result
 }
 
-func testMinionsRegistered(machines []string, k8sTimeout int) {
-	log.Printf("%s", machines)
-}
-
 func main() {
 	heatTimeout := 10 // minutes
-	//k8sTimeout := 1   // minutes
 	templateFile := "../../../corekube-heat.yaml"
 	keyName := "argon_dfw"
 
@@ -222,5 +217,4 @@ func main() {
 	for _, i := range stackDetails.Stack.Outputs {
 		log.Printf("%s", i)
 	}
-	//testMinionsRegistered(machines, k8sTimeout)
 }
