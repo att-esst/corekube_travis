@@ -120,8 +120,14 @@ watchLoop:
 		switch details.Stack.StackStatus {
 		case "CREATE_IN_PROGRESS":
 			time.Sleep(time.Duration(sleepDuration) * time.Second)
-		default:
+		case "CREATE_COMPLETE":
 			break watchLoop
+		default:
+			log.Printf("Stack Status: %s", details.Stack.StackStatus)
+			log.Printf("Stack Status: %s", details.Stack.StackStatusReason)
+			// TODO
+			// deleteStack
+			log.Fatal()
 		}
 	}
 
