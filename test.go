@@ -40,51 +40,16 @@ type StackDetails struct {
 }
 
 type StackDetailsData struct {
-	StackStatus string               `json:"stack_status"`
-	Id          string               `json:"id"`
-	Outputs     []StackDetailsOutput `json:"outputs"`
+	StackStatus       string               `json:"stack_status"`
+	StackStatusReason string               `json:"stack_status_reason"`
+	Id                string               `json:"id"`
+	Outputs           []StackDetailsOutput `json:"outputs"`
 }
 
 type StackDetailsOutput struct {
-	OutputValue string `json:"output_value"`
-	Description string `json:"description"`
-	OutputKey   string `json:"output_key"`
-}
-
-func getStackDetails(result CreateStackResult) {
-	var details StackDetails
-	url := result.Stack.Links[0].Href
-	token := rax.IdentitySetup()
-
-	headers := map[string]string{
-		"X-Auth-Token": token.ID,
-		"Content-Type": "application/json",
-	}
-
-	p := goutils.HttpRequestParams{
-		HttpRequestType: "GET",
-		Url:             url,
-		Headers:         headers,
-	}
-
-	statusCode, bodyBytes := goutils.HttpCreateRequest(p)
-
-	switch statusCode {
-	case 200:
-		err := json.Unmarshal(bodyBytes, &details)
-		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
-		log.Printf("%s", details.Stack.StackStatus)
-		log.Printf("%s", details.Stack.Id)
-	}
-}
-
-func waitForMachines() {
-	// - store stack_id from response body
-
-	// - do http GET request to stack details
-	// - loop every 10 sec to get status of stack creation
-	// - status can be IN-PROGRESS, FAILED, COMPLETE
-	// - urlStr := fmt.Sprintf("%s/stacks", os.Getenv("TRAVIS_OS_HEAT_URL"))
+	OutputValue interface{} `json:"output_value"`
+	Description string      `json:"description"`
+	OutputKey   string      `json:"output_key"`
 }
 
 func createGitCmdParam() string {
@@ -116,6 +81,70 @@ func createGitCmdParam() string {
 	return cmd
 }
 
+func getStackDetails(result *CreateStackResult) StackDetails {
+	var details StackDetails
+	url := (*result).Stack.Links[0].Href
+	token := rax.IdentitySetup()
+
+	headers := map[string]string{
+		"X-Auth-Token": token.ID,
+		"Content-Type": "application/json",
+	}
+
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	statusCode, bodyBytes := goutils.HttpCreateRequest(p)
+
+	switch statusCode {
+	case 200:
+		err := json.Unmarshal(bodyBytes, &details)
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 1})
+	}
+
+	return details
+}
+
+func watchStackCreation(result *CreateStackResult) StackDetails {
+	sleepDuration := 10 // seconds
+	var details StackDetails
+
+watchLoop:
+	for {
+		details = getStackDetails(result)
+		log.Printf("Stack Status: %s", details.Stack.StackStatus)
+
+		switch details.Stack.StackStatus {
+		case "CREATE_IN_PROGRESS":
+			time.Sleep(time.Duration(sleepDuration) * time.Second)
+		default:
+			break watchLoop
+		}
+	}
+
+	return details
+}
+
+func startStackTimeout(heatTimeout int, result *CreateStackResult) StackDetails {
+	chan1 := make(chan StackDetails, 1)
+	go func() {
+		stackDetails := watchStackCreation(result)
+		chan1 <- stackDetails
+	}()
+
+	select {
+	case result := <-chan1:
+		return result
+	case <-time.After(time.Duration(heatTimeout) * time.Minute):
+		msg := fmt.Sprintf("Stack create timed out after %d mins", heatTimeout)
+		log.Fatal(msg)
+	}
+	return *new(StackDetails)
+}
+
 func createStackReq(template, token, keyName string) (int, []byte) {
 	timeout := int(10)
 	params := map[string]string{
@@ -125,8 +154,11 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	disableRollback := bool(false)
 
 	timestamp := int32(time.Now().Unix())
+	templateName := fmt.Sprintf("corekube-travis-%d", timestamp)
+	log.Printf("Started creating stack: %s", templateName)
+
 	s := &HeatStack{
-		Name:            fmt.Sprintf("corekube-travis-%d", timestamp),
+		Name:            templateName,
 		Template:        template,
 		Params:          params,
 		Timeout:         timeout,
@@ -169,35 +201,20 @@ func createStack(templateFile, keyName string) CreateStackResult {
 	return result
 }
 
-func waitForStackResult(heatTimeout int) []string {
-	chan1 := make(chan []string, 1)
-	go func() {
-		//machines := waitForMachines()
-		machines := []string{}
-		chan1 <- machines
-	}()
-
-	select {
-	case result := <-chan1:
-		return result
-	case <-time.After(time.Duration(heatTimeout) * time.Minute):
-		log.Fatal("Timed out: Waiting for Heat Stack Result")
-	}
-	return nil
-}
-
 func testMinionsRegistered(machines []string, k8sTimeout int) {
 	log.Printf("%s", machines)
 }
 
 func main() {
-	//heatTimeout := 10 // minutes
+	heatTimeout := 10 // minutes
 	//k8sTimeout := 1   // minutes
 	templateFile := "../../../corekube-heat.yaml"
 	keyName := "argon_dfw"
 
 	result := createStack(templateFile, keyName)
-	getStackDetails(result)
-	//machines := waitForStackResult(heatTimeout)
+	stackDetails := startStackTimeout(heatTimeout, &result)
+	for _, i := range stackDetails.Stack.Outputs {
+		log.Printf("%s", i)
+	}
 	//testMinionsRegistered(machines, k8sTimeout)
 }
