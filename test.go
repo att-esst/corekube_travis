@@ -231,8 +231,8 @@ func extractOverlordIP(details util.StackDetails) string {
 
 func main() {
 	heatTimeout := 10 // minutes
-	templateFile := "../../../corekube-heat.yaml"
-	keyName := "argon_dfw"
+	templateFile := "../corekube-heat.yaml"
+	keyName := os.Getenv("TRAVIS_OS_KEYPAIR")
 
 	result := createStack(templateFile, keyName)
 	stackDetails := startStackTimeout(heatTimeout, &result)
