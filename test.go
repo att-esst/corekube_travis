@@ -171,7 +171,7 @@ func createStack(templateFile, keyName string) util.CreateStackResult {
 	return result
 }
 
-func subnetCountTest(details *util.StackDetails) {
+func overlayNetworksCountTest(details *util.StackDetails) {
 	d := *details
 
 	overlordIP := extractOverlordIP(d)
@@ -206,15 +206,15 @@ func subnetCountTest(details *util.StackDetails) {
 	subnetCount := len(subnetResult.Node.Nodes)
 
 	if subnetCount != totalCount {
-		msg := fmt.Sprintf("Test Failed: subnetCountTest:"+
+		msg := fmt.Sprintf("Test Failed: overlayNetworksCountTest:"+
 			" TotalCount: %d, SubnetCount: %d", totalCount, subnetCount)
 		log.Fatal(msg)
 	}
-	log.Printf("Test Succeeded: subnetCountTest")
+	log.Printf("Test Succeeded: overlayNetworksCountTest")
 }
 
 func runTests(details *util.StackDetails) {
-	subnetCountTest(details)
+	overlayNetworksCountTest(details)
 }
 
 func extractOverlordIP(details util.StackDetails) string {
