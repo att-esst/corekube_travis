@@ -6,51 +6,15 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/metral/corekube-travis/rax"
+	"github.com/metral/corekube-travis/util"
 	"github.com/metral/goutils"
+	"github.com/metral/overlord/lib"
 )
-
-type HeatStack struct {
-	Name            string            `json:"stack_name"`
-	Template        string            `json:"template"`
-	Params          map[string]string `json:"parameters"`
-	Timeout         int               `json:"timeout_mins"`
-	DisableRollback bool              `json:"disable_rollback"`
-}
-
-type CreateStackResult struct {
-	Stack CreateStackResultData `json:"stack"`
-}
-
-type CreateStackResultData struct {
-	Id    string       `json:"id"`
-	Links []StackLinks `json:"links"`
-}
-
-type StackLinks struct {
-	Href string `json:"href"`
-	Rel  string `json:"rel"`
-}
-
-type StackDetails struct {
-	Stack StackDetailsData `json:"stack"`
-}
-
-type StackDetailsData struct {
-	StackStatus       string               `json:"stack_status"`
-	StackStatusReason string               `json:"stack_status_reason"`
-	Id                string               `json:"id"`
-	Outputs           []StackDetailsOutput `json:"outputs"`
-}
-
-type StackDetailsOutput struct {
-	OutputValue interface{} `json:"output_value"`
-	Description string      `json:"description"`
-	OutputKey   string      `json:"output_key"`
-}
 
 func createGitCmdParam() string {
 	travisPR := os.Getenv("TRAVIS_PULL_REQUEST")
@@ -81,8 +45,8 @@ func createGitCmdParam() string {
 	return cmd
 }
 
-func getStackDetails(result *CreateStackResult) StackDetails {
-	var details StackDetails
+func getStackDetails(result *util.CreateStackResult) util.StackDetails {
+	var details util.StackDetails
 	url := (*result).Stack.Links[0].Href
 	token := rax.IdentitySetup()
 
@@ -108,9 +72,9 @@ func getStackDetails(result *CreateStackResult) StackDetails {
 	return details
 }
 
-func watchStackCreation(result *CreateStackResult) StackDetails {
+func watchStackCreation(result *util.CreateStackResult) util.StackDetails {
 	sleepDuration := 10 // seconds
-	var details StackDetails
+	var details util.StackDetails
 
 watchLoop:
 	for {
@@ -134,8 +98,8 @@ watchLoop:
 	return details
 }
 
-func startStackTimeout(heatTimeout int, result *CreateStackResult) StackDetails {
-	chan1 := make(chan StackDetails, 1)
+func startStackTimeout(heatTimeout int, result *util.CreateStackResult) util.StackDetails {
+	chan1 := make(chan util.StackDetails, 1)
 	go func() {
 		stackDetails := watchStackCreation(result)
 		chan1 <- stackDetails
@@ -148,7 +112,7 @@ func startStackTimeout(heatTimeout int, result *CreateStackResult) StackDetails 
 		msg := fmt.Sprintf("Stack create timed out after %d mins", heatTimeout)
 		log.Fatal(msg)
 	}
-	return *new(StackDetails)
+	return *new(util.StackDetails)
 }
 
 func createStackReq(template, token, keyName string) (int, []byte) {
@@ -163,7 +127,7 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	templateName := fmt.Sprintf("corekube-travis-%d", timestamp)
 	log.Printf("Started creating stack: %s", templateName)
 
-	s := &HeatStack{
+	s := &util.HeatStack{
 		Name:            templateName,
 		Template:        template,
 		Params:          params,
@@ -190,10 +154,10 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	return statusCode, bodyBytes
 }
 
-func createStack(templateFile, keyName string) CreateStackResult {
+func createStack(templateFile, keyName string) util.CreateStackResult {
 	readfile, _ := ioutil.ReadFile(templateFile)
 	template := string(readfile)
-	var result CreateStackResult
+	var result util.CreateStackResult
 
 	token := rax.IdentitySetup()
 
@@ -207,6 +171,64 @@ func createStack(templateFile, keyName string) CreateStackResult {
 	return result
 }
 
+func subnetCountTest(details *util.StackDetails) {
+	d := *details
+
+	overlordIP := extractOverlordIP(d)
+	masterCount, _ := strconv.Atoi(
+		d.Stack.Parameters["kubernetes-master-count"].(string))
+	minionCount, _ := strconv.Atoi(
+		d.Stack.Parameters["kubernetes-minion-count"].(string))
+	totalCount := masterCount + minionCount
+
+	var subnetResult lib.Result
+	path := fmt.Sprintf("%s/keys/coreos.com/network/subnets",
+		lib.ETCD_API_VERSION)
+	url := fmt.Sprintf("http://%s:%s/%s", overlordIP, lib.ETCD_CLIENT_PORT, path)
+
+	token := rax.IdentitySetup()
+
+	headers := map[string]string{
+		"X-Auth-Token": token.ID,
+		"Content-Type": "application/json",
+	}
+
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "GET",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	_, jsonResponse := goutils.HttpCreateRequest(p)
+	err := json.Unmarshal(jsonResponse, &subnetResult)
+	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
+
+	subnetCount := len(subnetResult.Node.Nodes)
+
+	if subnetCount != totalCount {
+		msg := fmt.Sprintf("Test Failed: subnetCountTest:"+
+			" TotalCount: %d, SubnetCount: %d", totalCount, subnetCount)
+		log.Fatal(msg)
+	}
+	log.Printf("Test Succeeded: subnetCountTest")
+}
+
+func runTests(details *util.StackDetails) {
+	subnetCountTest(details)
+}
+
+func extractOverlordIP(details util.StackDetails) string {
+	overlordIP := ""
+
+	for _, i := range details.Stack.Outputs {
+		if i.OutputKey == "overlord_ip" {
+			overlordIP = i.OutputValue.(string)
+		}
+	}
+
+	return overlordIP
+}
+
 func main() {
 	heatTimeout := 10 // minutes
 	templateFile := "../../../corekube-heat.yaml"
@@ -214,7 +236,5 @@ func main() {
 
 	result := createStack(templateFile, keyName)
 	stackDetails := startStackTimeout(heatTimeout, &result)
-	for _, i := range stackDetails.Stack.Outputs {
-		log.Printf("%s", i)
-	}
+	runTests(&stackDetails)
 }
