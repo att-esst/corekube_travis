@@ -163,9 +163,6 @@ func createStack(templateFile, keyName string) util.CreateStackResult {
 
 	statusCode, bodyBytes := createStackReq(template, token.ID, keyName)
 
-	log.Printf("here0 token- %s", token)
-	log.Printf("here1 status- %s", statusCode)
-	log.Printf("here2 body- %s", bodyBytes)
 	switch statusCode {
 	case 201:
 		err := json.Unmarshal(bodyBytes, &result)
