@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -14,6 +15,10 @@ import (
 	"github.com/metral/corekube-travis/util"
 	"github.com/metral/goutils"
 	"github.com/metral/overlord/lib"
+)
+
+var (
+	templateFilepath = flag.String("templateFilePath", "", "Filepath of corekube-heat.yaml")
 )
 
 func createGitCmdParam() string {
@@ -230,8 +235,10 @@ func extractOverlordIP(details util.StackDetails) string {
 }
 
 func main() {
+	flag.Parse()
+
 	heatTimeout := 10 // minutes
-	templateFile := "../corekube-heat.yaml"
+	templateFile := *templateFilepath
 	keyName := os.Getenv("TRAVIS_OS_KEYPAIR")
 
 	result := createStack(templateFile, keyName)
