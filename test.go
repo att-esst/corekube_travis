@@ -303,5 +303,5 @@ func main() {
 	result := createStack(templateFile, keyName)
 	stackDetails := startStackTimeout(heatTimeout, &result)
 	runTests(&stackDetails)
-	deleteStack(stackDetails.Stack.Links[0].Href)
+	//deleteStack(stackDetails.Stack.Links[0].Href)
 }
