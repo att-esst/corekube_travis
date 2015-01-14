@@ -25,10 +25,10 @@ var (
 
 func createGitCmdParam() string {
 	travisPR := os.Getenv("TRAVIS_PULL_REQUEST")
-	travisRepoSlug := os.Getenv("TRAVIS_REPO_SLUG")
+	overlordRepoSlug := "metral/overlord"
 
-	repoURL := fmt.Sprintf("https://github.com/%s", travisRepoSlug)
-	repo := strings.Split(travisRepoSlug, "/")[1]
+	repoURL := fmt.Sprintf("https://github.com/%s", overlordRepoSlug)
+	repo := strings.Split(overlordRepoSlug, "/")[1]
 	cmd := ""
 
 	switch travisPR {
