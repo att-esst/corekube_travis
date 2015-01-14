@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"reflect"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -25,7 +27,8 @@ func createGitCmdParam() string {
 	travisPR := os.Getenv("TRAVIS_PULL_REQUEST")
 	travisRepoSlug := os.Getenv("TRAVIS_REPO_SLUG")
 
-	repo := fmt.Sprintf("https://github.com/%s", travisRepoSlug)
+	reploSlug := fmt.Sprintf("https://github.com/%s", travisRepoSlug)
+	repo := strings.Split(travisRepoSlug, "/")[1]
 	cmd := ""
 
 	switch travisPR {
@@ -33,13 +36,13 @@ func createGitCmdParam() string {
 		travisBranch := os.Getenv("TRAVIS_BRANCH")
 		travisCommit := os.Getenv("TRAVIS_COMMIT")
 		c := []string{
-			fmt.Sprintf("/usr/bin/git clone -b %s %s", travisBranch, repo),
-			fmt.Sprintf("/usr/bin/git checkout -qf %s", travisCommit),
+			fmt.Sprintf("/usr/bin/git clone -b %s %s", travisBranch, reploSlug),
+			fmt.Sprintf("/usr/bin/git -C %s checkout -qf %s", repo, travisCommit),
 		}
 		cmd = strings.Join(c, "; ")
 	default: // PR number
 		c := []string{
-			fmt.Sprintf("/usr/bin/git clone %s", repo),
+			fmt.Sprintf("/usr/bin/git clone %s", reploSlug),
 			fmt.Sprintf("/usr/bin/git fetch origin +refs/pull/%s/merge",
 				travisPR),
 			fmt.Sprintf("/usr/bin/git checkout -qf FETCH_HEAD"),
@@ -176,52 +179,83 @@ func createStack(templateFile, keyName string) util.CreateStackResult {
 	return result
 }
 
-func overlayNetworksCountTest(details *util.StackDetails) {
+func getFunctionName(i interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(i).Pointer()).Name()
+}
+
+func overlayNetworksCountTest(details *util.StackDetails) string {
 	d := *details
+	msg := ""
+	sleepDuration := 10 //seconds
 
-	overlordIP := extractOverlordIP(d)
-	masterCount, _ := strconv.Atoi(
-		d.Stack.Parameters["kubernetes-master-count"].(string))
-	minionCount, _ := strconv.Atoi(
-		d.Stack.Parameters["kubernetes-minion-count"].(string))
-	totalCount := masterCount + minionCount
+	for {
+		msg = "overlayNetworksCountTest: "
 
-	var subnetResult lib.Result
-	path := fmt.Sprintf("%s/keys/coreos.com/network/subnets",
-		lib.ETCD_API_VERSION)
-	url := fmt.Sprintf("http://%s:%s/%s", overlordIP, lib.ETCD_CLIENT_PORT, path)
+		overlordIP := extractOverlordIP(d)
+		masterCount, _ := strconv.Atoi(
+			d.Stack.Parameters["kubernetes-master-count"].(string))
+		minionCount, _ := strconv.Atoi(
+			d.Stack.Parameters["kubernetes-minion-count"].(string))
+		expectedCount := masterCount + minionCount
 
-	token := rax.IdentitySetup()
+		var overlayResult lib.Result
+		path := fmt.Sprintf("%s/keys/coreos.com/network/subnets",
+			lib.ETCD_API_VERSION)
+		url := fmt.Sprintf("http://%s:%s/%s",
+			overlordIP, lib.ETCD_CLIENT_PORT, path)
 
-	headers := map[string]string{
-		"X-Auth-Token": token.ID,
-		"Content-Type": "application/json",
+		token := rax.IdentitySetup()
+
+		headers := map[string]string{
+			"X-Auth-Token": token.ID,
+			"Content-Type": "application/json",
+		}
+
+		p := goutils.HttpRequestParams{
+			HttpRequestType: "GET",
+			Url:             url,
+			Headers:         headers,
+		}
+
+		_, jsonResponse := goutils.HttpCreateRequest(p)
+		err := json.Unmarshal(jsonResponse, &overlayResult)
+		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
+
+		overlayNetworksCount := len(overlayResult.Node.Nodes)
+
+		if overlayNetworksCount == expectedCount {
+			return "Passed"
+		}
+
+		msg += fmt.Sprintf("ExpectedCount: %d, OverlayNetworkCount: %d",
+			expectedCount, overlayNetworksCount)
+		log.Printf(msg)
+		time.Sleep(time.Duration(sleepDuration) * time.Second)
 	}
 
-	p := goutils.HttpRequestParams{
-		HttpRequestType: "GET",
-		Url:             url,
-		Headers:         headers,
-	}
+	return "Failed"
+}
 
-	_, jsonResponse := goutils.HttpCreateRequest(p)
-	err := json.Unmarshal(jsonResponse, &subnetResult)
-	goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
+func startTestTimeout(timeout int, details *util.StackDetails, f func(*util.StackDetails) string) {
+	chan1 := make(chan string, 1)
+	go func() {
+		result := f(details)
+		chan1 <- result
+	}()
 
-	subnetCount := len(subnetResult.Node.Nodes)
-
-	if subnetCount != totalCount {
-		msg := fmt.Sprintf("Test Failed: overlayNetworksCountTest:"+
-			" ExpectedCount: %d, OverlayNetworkCount: %d",
-			totalCount, subnetCount)
-		deleteStack(details.Stack.Links[0].Href)
+	select {
+	case result := <-chan1:
+		msg := fmt.Sprintf("%s %s.", getFunctionName(f), result)
+		log.Printf(msg)
+	case <-time.After(time.Duration(timeout) * time.Minute):
+		msg := fmt.Sprintf("%s Failed: timed out after %d mins.",
+			getFunctionName(f), timeout)
 		log.Fatal(msg)
 	}
-	log.Printf("Test Succeeded: overlayNetworksCountTest")
 }
 
 func runTests(details *util.StackDetails) {
-	overlayNetworksCountTest(details)
+	startTestTimeout(1, details, overlayNetworksCountTest)
 }
 
 func extractOverlordIP(details util.StackDetails) string {
