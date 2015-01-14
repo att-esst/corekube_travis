@@ -125,10 +125,8 @@ func startStackTimeout(heatTimeout int, result *util.CreateStackResult) util.Sta
 
 func createStackReq(template, token, keyName string) (int, []byte) {
 	timeout := int(10)
-	gitCmd := createGitCmdParam()
 	params := map[string]string{
-		"git-command": gitCmd,
-		"key-name":    keyName,
+		"key-name": keyName,
 	}
 	disableRollback := bool(false)
 
@@ -136,7 +134,6 @@ func createStackReq(template, token, keyName string) (int, []byte) {
 	templateName := fmt.Sprintf("corekube-travis-%d", timestamp)
 
 	log.Printf("Started creating stack: %s", templateName)
-	log.Printf("Corekube git-command: %s", gitCmd)
 
 	s := &util.HeatStack{
 		Name:            templateName,
