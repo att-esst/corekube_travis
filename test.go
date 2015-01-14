@@ -94,8 +94,7 @@ watchLoop:
 		default:
 			log.Printf("Stack Status: %s", details.Stack.StackStatus)
 			log.Printf("Stack Status: %s", details.Stack.StackStatusReason)
-			// TODO
-			// deleteStack
+			deleteStack(result.Stack.Links[0].Href)
 			log.Fatal()
 		}
 	}
@@ -115,6 +114,7 @@ func startStackTimeout(heatTimeout int, result *util.CreateStackResult) util.Sta
 		return result
 	case <-time.After(time.Duration(heatTimeout) * time.Minute):
 		msg := fmt.Sprintf("Stack create timed out after %d mins", heatTimeout)
+		deleteStack(result.Stack.Links[0].Href)
 		log.Fatal(msg)
 	}
 	return *new(util.StackDetails)
@@ -213,6 +213,7 @@ func overlayNetworksCountTest(details *util.StackDetails) {
 	if subnetCount != totalCount {
 		msg := fmt.Sprintf("Test Failed: overlayNetworksCountTest:"+
 			" TotalCount: %d, SubnetCount: %d", totalCount, subnetCount)
+		deleteStack(details.Stack.Links[0].Href)
 		log.Fatal(msg)
 	}
 	log.Printf("Test Succeeded: overlayNetworksCountTest")
@@ -234,8 +235,7 @@ func extractOverlordIP(details util.StackDetails) string {
 	return overlordIP
 }
 
-func deleteStack(result *util.CreateStackResult) {
-	url := (*result).Stack.Links[0].Href
+func deleteStack(stackUrl string) {
 	token := rax.IdentitySetup()
 
 	headers := map[string]string{
@@ -245,7 +245,7 @@ func deleteStack(result *util.CreateStackResult) {
 
 	p := goutils.HttpRequestParams{
 		HttpRequestType: "DELETE",
-		Url:             url,
+		Url:             stackUrl,
 		Headers:         headers,
 	}
 
@@ -268,5 +268,5 @@ func main() {
 	result := createStack(templateFile, keyName)
 	stackDetails := startStackTimeout(heatTimeout, &result)
 	runTests(&stackDetails)
-	deleteStack(&result)
+	deleteStack(stackDetails.Stack.Links[0].Href)
 }

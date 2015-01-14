@@ -29,6 +29,7 @@ type StackDetails struct {
 type StackDetailsData struct {
 	StackStatus       string                 `json:"stack_status"`
 	StackStatusReason string                 `json:"stack_status_reason"`
+	Links             []StackLinks           `json:"links"`
 	Id                string                 `json:"id"`
 	Outputs           []StackDetailsOutput   `json:"outputs"`
 	Parameters        map[string]interface{} `json:"parameters"`
