@@ -212,7 +212,8 @@ func overlayNetworksCountTest(details *util.StackDetails) {
 
 	if subnetCount != totalCount {
 		msg := fmt.Sprintf("Test Failed: overlayNetworksCountTest:"+
-			" TotalCount: %d, SubnetCount: %d", totalCount, subnetCount)
+			" ExpectedCount: %d, OverlayNetworkCount: %d",
+			totalCount, subnetCount)
 		deleteStack(details.Stack.Links[0].Href)
 		log.Fatal(msg)
 	}
