@@ -234,6 +234,30 @@ func extractOverlordIP(details util.StackDetails) string {
 	return overlordIP
 }
 
+func deleteStack(result *util.CreateStackResult) {
+	url := (*result).Stack.Links[0].Href
+	token := rax.IdentitySetup()
+
+	headers := map[string]string{
+		"X-Auth-Token": token.ID,
+		"Content-Type": "application/json",
+	}
+
+	p := goutils.HttpRequestParams{
+		HttpRequestType: "DELETE",
+		Url:             url,
+		Headers:         headers,
+	}
+
+	statusCode, _ := goutils.HttpCreateRequest(p)
+
+	switch statusCode {
+	case 204:
+		log.Printf("Delete stack requested.")
+	}
+
+}
+
 func main() {
 	flag.Parse()
 
@@ -244,4 +268,5 @@ func main() {
 	result := createStack(templateFile, keyName)
 	stackDetails := startStackTimeout(heatTimeout, &result)
 	runTests(&stackDetails)
+	deleteStack(&result)
 }
