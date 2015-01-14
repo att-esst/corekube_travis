@@ -27,7 +27,7 @@ func createGitCmdParam() string {
 	travisPR := os.Getenv("TRAVIS_PULL_REQUEST")
 	travisRepoSlug := os.Getenv("TRAVIS_REPO_SLUG")
 
-	reploSlug := fmt.Sprintf("https://github.com/%s", travisRepoSlug)
+	repoURL := fmt.Sprintf("https://github.com/%s", travisRepoSlug)
 	repo := strings.Split(travisRepoSlug, "/")[1]
 	cmd := ""
 
@@ -36,16 +36,16 @@ func createGitCmdParam() string {
 		travisBranch := os.Getenv("TRAVIS_BRANCH")
 		travisCommit := os.Getenv("TRAVIS_COMMIT")
 		c := []string{
-			fmt.Sprintf("/usr/bin/git clone -b %s %s", travisBranch, reploSlug),
+			fmt.Sprintf("/usr/bin/git clone -b %s %s", travisBranch, repoURL),
 			fmt.Sprintf("/usr/bin/git -C %s checkout -qf %s", repo, travisCommit),
 		}
 		cmd = strings.Join(c, "; ")
 	default: // PR number
 		c := []string{
-			fmt.Sprintf("/usr/bin/git clone %s", reploSlug),
-			fmt.Sprintf("/usr/bin/git fetch origin +refs/pull/%s/merge",
-				travisPR),
-			fmt.Sprintf("/usr/bin/git checkout -qf FETCH_HEAD"),
+			fmt.Sprintf("/usr/bin/git clone %s", repoURL),
+			fmt.Sprintf("/usr/bin/git -C %s fetch origin +refs/pull/%s/merge",
+				repo, travisPR),
+			fmt.Sprintf("/usr/bin/git -C %s checkout -qf FETCH_HEAD", repo),
 		}
 		cmd = strings.Join(c, "; ")
 	}
@@ -125,15 +125,18 @@ func startStackTimeout(heatTimeout int, result *util.CreateStackResult) util.Sta
 
 func createStackReq(template, token, keyName string) (int, []byte) {
 	timeout := int(10)
+	gitCmd := createGitCmdParam()
 	params := map[string]string{
-		"git-command": createGitCmdParam(),
+		"git-command": gitCmd,
 		"key-name":    keyName,
 	}
 	disableRollback := bool(false)
 
 	timestamp := int32(time.Now().Unix())
 	templateName := fmt.Sprintf("corekube-travis-%d", timestamp)
+
 	log.Printf("Started creating stack: %s", templateName)
+	log.Printf("Corekube git-command: %s", gitCmd)
 
 	s := &util.HeatStack{
 		Name:            templateName,
