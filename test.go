@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"runtime"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/metral/corekube-travis/rax"
@@ -22,36 +21,6 @@ import (
 var (
 	templateFilepath = flag.String("templateFilePath", "", "Filepath of corekube-heat.yaml")
 )
-
-func createGitCmdParam() string {
-	travisPR := os.Getenv("TRAVIS_PULL_REQUEST")
-	overlordRepoSlug := "metral/overlord"
-
-	repoURL := fmt.Sprintf("https://github.com/%s", overlordRepoSlug)
-	repo := strings.Split(overlordRepoSlug, "/")[1]
-	cmd := ""
-
-	switch travisPR {
-	case "false": // false aka build commit
-		travisBranch := os.Getenv("TRAVIS_BRANCH")
-		travisCommit := os.Getenv("TRAVIS_COMMIT")
-		c := []string{
-			fmt.Sprintf("/usr/bin/git clone -b %s %s", travisBranch, repoURL),
-			fmt.Sprintf("/usr/bin/git -C %s checkout -qf %s", repo, travisCommit),
-		}
-		cmd = strings.Join(c, "; ")
-	default: // PR number
-		c := []string{
-			fmt.Sprintf("/usr/bin/git clone %s", repoURL),
-			fmt.Sprintf("/usr/bin/git -C %s fetch origin +refs/pull/%s/merge",
-				repo, travisPR),
-			fmt.Sprintf("/usr/bin/git -C %s checkout -qf FETCH_HEAD", repo),
-		}
-		cmd = strings.Join(c, "; ")
-	}
-
-	return cmd
-}
 
 func getStackDetails(result *util.CreateStackResult) util.StackDetails {
 	var details util.StackDetails
