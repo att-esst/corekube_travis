@@ -54,13 +54,11 @@ func minionK8sCountTest(
 		msg = "minionK8sCountTest: "
 
 		masterIP := util.ExtractArrayIPs(d, "master_ips")
-		log.Printf("masterIP: %s", masterIP)
-		log.Printf("masterIP0: %s", masterIP[0])
 		//minionCount, _ := strconv.Atoi(
 		//		d.Stack.Parameters["kubernetes-minion-count"].(string))
 
 		//var minionsResult lib.Result
-		endpoint := fmt.Sprintf("http://%s:%s", masterIP, lib.K8S_API_PORT)
+		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.K8S_API_PORT)
 		masterAPIurl := fmt.Sprintf(
 			"%s/api/%s/minions", endpoint, lib.K8S_API_VERSION)
 
