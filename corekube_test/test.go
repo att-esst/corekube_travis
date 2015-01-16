@@ -74,7 +74,8 @@ func runTests(config *util.HeatConfig, details *util.StackDetails) {
 }
 
 func main() {
-	config, stackDetails := corekube_travis.BuildConfigAndCreateStack()
+	params := map[string]string{}
+	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
 	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
 }

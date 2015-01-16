@@ -38,7 +38,9 @@ func StartTestTimeout(timeout int, config *util.HeatConfig, details *util.StackD
 	}
 }
 
-func BuildConfigAndCreateStack() (*util.HeatConfig, *util.StackDetails) {
+func BuildConfigAndCreateStack(
+	params *map[string]string) (*util.HeatConfig, *util.StackDetails) {
+
 	flag.Parse()
 
 	c := util.HeatConfig{
@@ -51,7 +53,7 @@ func BuildConfigAndCreateStack() (*util.HeatConfig, *util.StackDetails) {
 		Timeout:      int(*timeout),
 	}
 
-	result := goheat.CreateStack(&c)
+	result := goheat.CreateStack(params, &c)
 	stackDetails := goheat.StartStackTimeout(&c, &result)
 
 	return &c, &stackDetails
