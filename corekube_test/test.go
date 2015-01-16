@@ -16,7 +16,9 @@ import (
 	"github.com/metral/overlord/lib"
 )
 
-func overlayNetworksCountTest(config *util.HeatConfig, details *util.StackDetails) string {
+func overlayNetworksCountTest(
+	config *util.HeatConfig, details *util.StackDetails) string {
+
 	d := *details
 	msg := ""
 	sleepDuration := 10 //seconds
