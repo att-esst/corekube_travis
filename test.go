@@ -117,5 +117,5 @@ func main() {
 	result := goheat.CreateStack(&c)
 	stackDetails := goheat.StartStackTimeout(&c, &result)
 	runTests(&c, &stackDetails)
-	deleteStack(stackDetails.Stack.Links[0].Href)
+	goheat.DeleteStack(&c, stackDetails.Stack.Links[0].Href)
 }
