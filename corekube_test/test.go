@@ -52,9 +52,12 @@ func overlayNetworksCountTest(
 			Headers:         headers,
 		}
 
-		_, jsonResponse := goutils.HttpCreateRequest(p)
+		_, jsonResponse, createError := goutils.HttpCreateRequest(p)
+		goutils.PrintErrors(
+			goutils.ErrorParams{Err: createError, CallerNum: 2, Fatal: false})
 		err := json.Unmarshal(jsonResponse, &overlayResult)
-		goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
+		goutils.PrintErrors(
+			goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 
 		overlayNetworksCount := len(overlayResult.Node.Nodes)
 
