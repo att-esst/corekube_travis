@@ -72,9 +72,12 @@ func minionK8sCountTest(
 			Headers:         headers,
 		}
 
-		_, jsonResponse := goutils.HttpCreateRequest(p)
+		statusCode, bodyBytes, createError := goutils.HttpCreateRequest(p)
+		goutils.PrintErrors(
+			goutils.ErrorParams{Err: createError, CallerNum: 2, Fatal: false})
 		//err := json.Unmarshal(jsonResponse, &minionsResult)
-		log.Printf("jsonreponse: %s", jsonResponse)
+		log.Printf("statusCode: %s", statusCode)
+		log.Printf("bodyBytes: %s", bodyBytes)
 		/*
 			goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
 
@@ -95,7 +98,7 @@ func minionK8sCountTest(
 }
 
 func runTests(config *util.HeatConfig, details *util.StackDetails) {
-	corekube_travis.StartTestTimeout(2, config, details, minionK8sCountTest)
+	corekube_travis.StartTestTimeout(10, config, details, minionK8sCountTest)
 }
 
 func main() {
