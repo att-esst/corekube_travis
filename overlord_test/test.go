@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/metral/corekube_travis"
+	"github.com/metral/goheat"
 	"github.com/metral/goheat/util"
 	"github.com/metral/goutils"
 	"github.com/metral/overlord/lib"
@@ -103,5 +104,5 @@ func main() {
 	}
 	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
-	//goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
+	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
 }
