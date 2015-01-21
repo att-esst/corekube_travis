@@ -1,0 +1,56 @@
+{
+	"ImportPath": "github.com/metral/corekube_travis/overlord_test",
+	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/coreos/fleet/log",
+			"Comment": "v0.8.3",
+			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+		},
+		{
+			"ImportPath": "github.com/coreos/fleet/pkg",
+			"Comment": "v0.8.3",
+			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+		},
+		{
+			"ImportPath": "github.com/coreos/fleet/unit",
+			"Comment": "v0.8.3",
+			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+		},
+		{
+			"ImportPath": "github.com/coreos/go-systemd/unit",
+			"Comment": "v2-35-gcf3cdf7",
+			"Rev": "cf3cdf77462baaad163ad2d5d1984b9c1b493701"
+		},
+		{
+			"ImportPath": "github.com/metral/goheat",
+			"Rev": "4ff380050c5de2fa6313ccbc408a254c2412d27c"
+		},
+		{
+			"ImportPath": "github.com/metral/goutils",
+			"Rev": "b3251945499cfb33521c418d90d4d926b9b5fc69"
+		},
+		{
+			"ImportPath": "github.com/metral/overlord/lib",
+			"Comment": "v0.0.1-10-ga0f6303",
+			"Rev": "a0f630367c399d958986cb4882c4fabdd25ce5ed"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+		},
+		{
+			"ImportPath": "github.com/racker/perigee",
+			"Comment": "v0.0.0-18-g0c00cb0",
+			"Rev": "0c00cb0a026b71034ebc8205263c77dad3577db5"
+		},
+		{
+			"ImportPath": "github.com/rackspace/gophercloud",
+			"Comment": "v1.0.0-239-g4bc0d65",
+			"Rev": "4bc0d65f88a8b60df59778baa0b10e5a76dd68c9"
+		}
+	]
+}
