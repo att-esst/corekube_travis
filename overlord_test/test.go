@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -54,10 +56,10 @@ func minionK8sCountTest(
 		msg = "minionK8sCountTest: "
 
 		masterIP := util.ExtractArrayIPs(d, "master_ips")
-		//minionCount, _ := strconv.Atoi(
-		//		d.Stack.Parameters["kubernetes-minion-count"].(string))
+		expectedMinionCount, _ := strconv.Atoi(
+			d.Stack.Parameters["kubernetes-minion-count"].(string))
 
-		//var minionsResult lib.Result
+		var minionsResult lib.MinionsResult
 		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.K8S_API_PORT)
 		masterAPIurl := fmt.Sprintf(
 			"%s/api/%s/minions", endpoint, lib.K8S_API_VERSION)
@@ -72,24 +74,17 @@ func minionK8sCountTest(
 			Headers:         headers,
 		}
 
-		statusCode, bodyBytes, createError := goutils.HttpCreateRequest(p)
-		goutils.PrintErrors(
-			goutils.ErrorParams{Err: createError, CallerNum: 2, Fatal: false})
-		//err := json.Unmarshal(jsonResponse, &minionsResult)
-		log.Printf("statusCode: %s", statusCode)
-		log.Printf("bodyBytes: %s", bodyBytes)
-		/*
-			goutils.CheckForErrors(goutils.ErrorParams{Err: err, CallerNum: 2})
+		_, bodyBytes, _ := goutils.HttpCreateRequest(p)
 
-			overlayNetworksCount := len(overlayResult.Node.Nodes)
+		json.Unmarshal(bodyBytes, &minionsResult)
+		minionsCount := len(minionsResult.Minions)
 
-			if overlayNetworksCount == expectedCount {
-				return "Passed"
-			}
+		if minionsCount == expectedMinionCount {
+			return "Passed"
+		}
 
-			msg += fmt.Sprintf("ExpectedCount: %d, OverlayNetworkCount: %d",
-				expectedCount, overlayNetworksCount)
-		*/
+		msg += fmt.Sprintf("ExpectedCount: %d, MinionCount: %d",
+			expectedMinionCount, minionsCount)
 		log.Printf(msg)
 		time.Sleep(time.Duration(sleepDuration) * time.Second)
 	}
