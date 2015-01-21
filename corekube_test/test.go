@@ -61,13 +61,14 @@ func overlayNetworksCountTest(
 
 		overlayNetworksCount := len(overlayResult.Node.Nodes)
 
+		msg += fmt.Sprintf("ExpectedCount: %d, OverlayNetworkCount: %d",
+			expectedCount, overlayNetworksCount)
+		log.Printf(msg)
+
 		if overlayNetworksCount == expectedCount {
 			return "Passed"
 		}
 
-		msg += fmt.Sprintf("ExpectedCount: %d, OverlayNetworkCount: %d",
-			expectedCount, overlayNetworksCount)
-		log.Printf(msg)
 		time.Sleep(time.Duration(sleepDuration) * time.Second)
 	}
 
