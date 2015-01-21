@@ -79,13 +79,14 @@ func minionK8sCountTest(
 		json.Unmarshal(bodyBytes, &minionsResult)
 		minionsCount := len(minionsResult.Minions)
 
+		msg += fmt.Sprintf("ExpectedCount: %d, MinionCount: %d",
+			expectedMinionCount, minionsCount)
+		log.Printf(msg)
+
 		if minionsCount == expectedMinionCount {
 			return "Passed"
 		}
 
-		msg += fmt.Sprintf("ExpectedCount: %d, MinionCount: %d",
-			expectedMinionCount, minionsCount)
-		log.Printf(msg)
 		time.Sleep(time.Duration(sleepDuration) * time.Second)
 	}
 
