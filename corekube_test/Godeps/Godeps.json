@@ -7,18 +7,18 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/coreos/fleet/log",
-			"Comment": "v0.8.3",
-			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+			"Comment": "v0.9.0",
+			"Rev": "2d5c6bb0751ad3a50c0a219158439071a59e549f"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/pkg",
-			"Comment": "v0.8.3",
-			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+			"Comment": "v0.9.0",
+			"Rev": "2d5c6bb0751ad3a50c0a219158439071a59e549f"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/unit",
-			"Comment": "v0.8.3",
-			"Rev": "647eca78638168d650bfe34614cef1f064e770bb"
+			"Comment": "v0.9.0",
+			"Rev": "2d5c6bb0751ad3a50c0a219158439071a59e549f"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-systemd/unit",
@@ -35,8 +35,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-10-ga0f6303",
-			"Rev": "a0f630367c399d958986cb4882c4fabdd25ce5ed"
+			"Comment": "v0.0.1-14-gd7ba14a",
+			"Rev": "d7ba14ab7faed2c3ec34d475cfa9d2e007495500"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
