@@ -76,7 +76,7 @@ func overlayNetworksCountTest(
 }
 
 func runTests(config *util.HeatConfig, details *util.StackDetails) {
-	corekube_travis.StartTestTimeout(1, config, details, overlayNetworksCountTest)
+	corekube_travis.StartTestTimeout(5, config, details, overlayNetworksCountTest)
 }
 
 func main() {
