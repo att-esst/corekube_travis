@@ -46,7 +46,7 @@ func createGitCmdParam() string {
 	return cmd
 }
 
-func minionK8sCountTest(
+func nodeK8sCountTest(
 	config *util.HeatConfig, details *util.StackDetails) string {
 
 	d := *details
@@ -54,16 +54,16 @@ func minionK8sCountTest(
 	sleepDuration := 10 //seconds
 
 	for {
-		msg = "minionK8sCountTest: "
+		msg = "nodeK8sCountTest: "
 
 		masterIP := util.ExtractArrayIPs(d, "master_ips")
-		expectedMinionCount, _ := strconv.Atoi(
+		expectedNodeCount, _ := strconv.Atoi(
 			d.Stack.Parameters["kubernetes-minion-count"].(string))
 
-		var minionsResult lib.MinionsResult
-		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.K8S_API_PORT)
+		var nodesResult lib.KNodesResult
+		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.Conf.KubernetesAPIPort)
 		masterAPIurl := fmt.Sprintf(
-			"%s/api/%s/minions", endpoint, lib.K8S_API_VERSION)
+			"%s/api/%s/nodes", endpoint, lib.Conf.KubernetesAPIVersion)
 
 		headers := map[string]string{
 			"Content-Type": "application/json",
@@ -77,14 +77,14 @@ func minionK8sCountTest(
 
 		_, bodyBytes, _ := goutils.HttpCreateRequest(p)
 
-		json.Unmarshal(bodyBytes, &minionsResult)
-		minionsCount := len(minionsResult.Minions)
+		json.Unmarshal(bodyBytes, &nodesResult)
+		nodesCount := len(nodesResult.Nodes)
 
-		msg += fmt.Sprintf("ExpectedCount: %d, MinionCount: %d",
-			expectedMinionCount, minionsCount)
+		msg += fmt.Sprintf("ExpectedCount: %d, NodeCount: %d",
+			expectedNodeCount, nodesCount)
 		log.Printf(msg)
 
-		if minionsCount == expectedMinionCount {
+		if nodesCount == expectedNodeCount {
 			return "Passed"
 		}
 
@@ -95,7 +95,7 @@ func minionK8sCountTest(
 }
 
 func runTests(config *util.HeatConfig, details *util.StackDetails) {
-	corekube_travis.StartTestTimeout(10, config, details, minionK8sCountTest)
+	corekube_travis.StartTestTimeout(10, config, details, nodeK8sCountTest)
 }
 
 func main() {

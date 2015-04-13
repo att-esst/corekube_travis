@@ -14,9 +14,6 @@ import (
 	"github.com/metral/goutils"
 )
 
-var FLEET_API_VERSION string = "v1-alpha"
-var FLEET_API_PORT string = "10001"
-
 // Types Result, ResultNode, NodeResult & Node adapted from:
 // https://github.com/coreos/fleet/blob/master/etcd/result.go
 type Map map[string]interface{}
@@ -43,10 +40,6 @@ type FleetUnitStates struct {
 	States []FleetUnitState
 }
 
-type Conf struct {
-	BinariesURL string `json:"binariesURL"`
-}
-
 func (f FleetMachine) PrintString() {
 	log.Printf("-- ID: %s\n", f.ID)
 	log.Printf("-- IP: %s\n", f.PublicIP)
@@ -61,10 +54,8 @@ func (m Map) String() string {
 	return output
 }
 
-func createMasterUnits(
-	fleetMachine *FleetMachine,
-	unitPathInfo []map[string]string,
-) []string {
+func createMasterUnits(fleetMachine *FleetMachine) []string {
+	unitPathInfo := setupUnitFilesDeps()
 
 	files := map[string]string{
 		"api":        "master-apiserver@.service",
@@ -82,11 +73,7 @@ func createMasterUnits(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	download := string(readfile)
 	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
-
-	file, _ := os.Open("/templates/conf.json")
-	conf := new(Conf)
-	json.NewDecoder(file).Decode(conf)
-	download = strings.Replace(download, "<URL>", conf.BinariesURL, -1)
+	download = strings.Replace(download, "<URL>", Conf.BinariesURL, -1)
 
 	// Write download service file
 	filename := strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)
@@ -121,6 +108,7 @@ func createMasterUnits(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	controller := string(readfile)
 	controller = strings.Replace(controller, "<ID>", fleetMachine.ID, -1)
+	controller = strings.Replace(controller, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write controller service file
 	filename = strings.Replace(files["controller"], "@", "@"+fleetMachine.ID, -1)
@@ -137,6 +125,7 @@ func createMasterUnits(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	scheduler := string(readfile)
 	scheduler = strings.Replace(scheduler, "<ID>", fleetMachine.ID, -1)
+	scheduler = strings.Replace(scheduler, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write scheduler service file
 	filename = strings.Replace(files["scheduler"], "@", "@"+fleetMachine.ID, -1)
@@ -146,12 +135,16 @@ func createMasterUnits(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	createdFiles = append(createdFiles, scheduler_file)
 
+	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
 	return createdFiles
 }
 
-func createMinionUnits(fleetMachine *FleetMachine,
-	unitPathInfo []map[string]string,
-) []string {
+func createMinionUnits(masterFleetMachine,
+	fleetMachine *FleetMachine) []string {
+
+	masterIPPort := fmt.Sprintf("%s:%s",
+		masterFleetMachine.PublicIP, Conf.KubernetesAPIPort)
+	unitPathInfo := setupUnitFilesDeps()
 	files := map[string]string{
 		"kubelet":  "minion-kubelet@.service",
 		"proxy":    "minion-proxy@.service",
@@ -167,11 +160,7 @@ func createMinionUnits(fleetMachine *FleetMachine,
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	download := string(readfile)
 	download = strings.Replace(download, "<ID>", fleetMachine.ID, -1)
-
-	file, _ := os.Open("/templates/conf.json")
-	conf := new(Conf)
-	json.NewDecoder(file).Decode(conf)
-	download = strings.Replace(download, "<URL>", conf.BinariesURL, -1)
+	download = strings.Replace(download, "<URL>", Conf.BinariesURL, -1)
 
 	// Write download service file
 	filename := strings.Replace(files["download"], "@", "@"+fleetMachine.ID, -1)
@@ -190,6 +179,7 @@ func createMinionUnits(fleetMachine *FleetMachine,
 	kubelet := string(readfile)
 	kubelet = strings.Replace(kubelet, "<ID>", fleetMachine.ID, -1)
 	kubelet = strings.Replace(kubelet, "<IP_ADDR>", fleetMachine.PublicIP, -1)
+	kubelet = strings.Replace(kubelet, "<MASTER_IP_PORT>", masterIPPort, -1)
 
 	// Write kubelet service file
 	filename = strings.Replace(files["kubelet"], "@", "@"+fleetMachine.ID, -1)
@@ -206,6 +196,8 @@ func createMinionUnits(fleetMachine *FleetMachine,
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	proxy := string(readfile)
 	proxy = strings.Replace(proxy, "<ID>", fleetMachine.ID, -1)
+	proxy = strings.Replace(proxy, "<MASTER_IP_PORT>", masterIPPort, -1)
+	proxy = strings.Replace(proxy, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write proxy service file
 	filename = strings.Replace(files["proxy"], "@", "@"+fleetMachine.ID, -1)
@@ -215,13 +207,12 @@ func createMinionUnits(fleetMachine *FleetMachine,
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	createdFiles = append(createdFiles, proxy_file)
 
+	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
 	return createdFiles
 }
 
-func createUnitFiles(fleetMachine *FleetMachine) []string {
+func setupUnitFilesDeps() []map[string]string {
 	unitPathInfo := getUnitPathInfo()
-	createdFiles := []string{}
-
 	perm := os.FileMode(os.ModeDir)
 
 	for _, v := range unitPathInfo {
@@ -232,15 +223,18 @@ func createUnitFiles(fleetMachine *FleetMachine) []string {
 		os.MkdirAll(v["path"], perm)
 	}
 
-	switch fleetMachine.Metadata["kubernetes_role"] {
-	case "master":
-		createdFiles = createMasterUnits(fleetMachine, unitPathInfo)
-	case "minion":
-		createdFiles = createMinionUnits(fleetMachine, unitPathInfo)
-	}
+	return unitPathInfo
+	/*
+		switch fleetMachine.Metadata["kubernetes_role"] {
+		case "master":
+			createdFiles = createMasterUnits(fleetMachine, unitPathInfo)
+		case "minion":
+			createdFiles = createMinionUnits(masterIPPort, fleetMachine, unitPathInfo)
+		}
 
-	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
-	return createdFiles
+		log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
+		return createdFiles
+	*/
 }
 
 func getSubStateByPath(path string) string {
@@ -280,8 +274,8 @@ func getUnitState(unitFile string) FleetUnitState {
 	var fleetUnitStates FleetUnitStates
 	filename := filepath.Base(unitFile)
 
-	urlPath := fmt.Sprintf("%s/state", FLEET_API_VERSION)
-	url := getFullAPIURL(FLEET_API_PORT, urlPath)
+	urlPath := fmt.Sprintf("fleet/%s/state", Conf.FleetAPIVersion)
+	url := getFullAPIURL(Conf.FleetAPIPort, urlPath)
 
 	headers := map[string]string{
 		"Content-Type": "application/json",
@@ -316,8 +310,8 @@ func lowerCasingOfUnitOptionsStr(json_str string) string {
 func startUnitFile(unitFile string) {
 	filename := filepath.Base(unitFile)
 	unitFilepath := fmt.Sprintf(
-		"%s/units/%s", FLEET_API_VERSION, filename)
-	url := getFullAPIURL(FLEET_API_PORT, unitFilepath)
+		"fleet/%s/units/%s", Conf.FleetAPIVersion, filename)
+	url := getFullAPIURL(Conf.FleetAPIPort, unitFilepath)
 
 	log.Printf("Starting unit file: %s", filename)
 

@@ -40,45 +40,66 @@ func removeOverlord(nodes *ResultNodes) {
 func Main() {
 	fleetResult := Result{}
 	var f *Result = &fleetResult
-	master := FleetMachine{}
-	minions := FleetMachines{}
 
 	setMachinesSeen([]string{})
-	time.Sleep(1 * time.Second)
 
 	// Get Fleet machines
+	var masterFleetMachine FleetMachine
+	var createdFiles, allMachinesSeen []string
 	for {
 		getFleetMachines(f)
-		allMachinesSeen := getMachinesSeen()
+
+		totalSeen := len(allMachinesSeen)
+		log.Printf("------------------------------------------------------------")
+		log.Printf("Current # of machines seen/deployed to: (%d)\n", totalSeen)
+
 		totalMachines := len(f.Node.Nodes)
-		log.Printf("------------------------------------------------")
+		log.Printf("------------------------------------------------------------")
 		log.Printf("Current # of machines discovered: (%d)\n", totalMachines)
 
-		// Get Fleet machines metadata
 		var fleetMachine FleetMachine
+		// Get Fleet machines metadata
 		for _, resultNode := range f.Node.Nodes {
 			waitForMetadata(&resultNode, &fleetMachine)
 
-			if !machineSeen(allMachinesSeen, fleetMachine.ID) {
-				log.Printf("------------------------------------------------")
+			switch fleetMachine.Metadata["kubernetes_role"] {
+			case "master":
+				masterFleetMachine = fleetMachine
+			}
+
+			if !machineSeen(allMachinesSeen, fleetMachine.ID) &&
+				masterFleetMachine.ID != "" {
+
+				log.Printf("------------------------------------------------------------")
 				log.Printf("Found machine:\n")
 				fleetMachine.PrintString()
 
-				if isK8sMachine(&fleetMachine, &master, &minions) {
+				if isMaster(&fleetMachine) || isMinion(&fleetMachine) {
 					allMachinesSeen = append(allMachinesSeen, fleetMachine.ID)
-				}
-				createdFiles := createUnitFiles(&fleetMachine)
-				for _, file := range createdFiles {
-					if !unitFileCompleted(file) {
-						startUnitFile(file)
-						waitUnitFileComplete(file)
+
+					if isMaster(&fleetMachine) {
+						createdFiles = createMasterUnits(&fleetMachine)
+					} else if isMinion(&fleetMachine) {
+						createdFiles = createMinionUnits(
+							&masterFleetMachine, &fleetMachine)
 					}
+					for _, file := range createdFiles {
+						if !unitFileCompleted(file) {
+							startUnitFile(file)
+							waitUnitFileComplete(file)
+						}
+					}
+
+					if isMinion(&fleetMachine) {
+						registerKNodes(&masterFleetMachine, &fleetMachine)
+					}
+
+					setMachinesSeen(allMachinesSeen)
 				}
 			}
 		}
 
-		setMachinesSeen(allMachinesSeen)
-		registerMinions(&master, &minions)
 		time.Sleep(1 * time.Second)
+		allMachinesSeen = getMachinesSeen()
 	}
 }

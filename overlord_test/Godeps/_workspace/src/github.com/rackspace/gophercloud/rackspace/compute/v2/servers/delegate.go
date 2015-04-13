@@ -16,6 +16,11 @@ func Create(client *gophercloud.ServiceClient, opts os.CreateOptsBuilder) os.Cre
 	return os.Create(client, opts)
 }
 
+// Update requests an existing server to be updated with the supplied options.
+func Update(client *gophercloud.ServiceClient, id string, opts os.UpdateOptsBuilder) os.UpdateResult {
+	return os.Update(client, id, opts)
+}
+
 // Delete requests that a server previously provisioned be removed from your account.
 func Delete(client *gophercloud.ServiceClient, id string) os.DeleteResult {
 	return os.Delete(client, id)
@@ -58,4 +63,25 @@ func WaitForStatus(c *gophercloud.ServiceClient, id, status string, secs int) er
 // ExtractServers interprets the results of a single page from a List() call, producing a slice of Server entities.
 func ExtractServers(page pagination.Page) ([]os.Server, error) {
 	return os.ExtractServers(page)
+}
+
+// ListAddresses makes a request against the API to list the servers IP addresses.
+func ListAddresses(client *gophercloud.ServiceClient, id string) pagination.Pager {
+	return os.ListAddresses(client, id)
+}
+
+// ExtractAddresses interprets the results of a single page from a ListAddresses() call, producing a map of Address slices.
+func ExtractAddresses(page pagination.Page) (map[string][]os.Address, error) {
+	return os.ExtractAddresses(page)
+}
+
+// ListAddressesByNetwork makes a request against the API to list the servers IP addresses
+// for the given network.
+func ListAddressesByNetwork(client *gophercloud.ServiceClient, id, network string) pagination.Pager {
+	return os.ListAddressesByNetwork(client, id, network)
+}
+
+// ExtractNetworkAddresses interprets the results of a single page from a ListAddressesByNetwork() call, producing a map of Address slices.
+func ExtractNetworkAddresses(page pagination.Page) ([]os.Address, error) {
+	return os.ExtractNetworkAddresses(page)
 }
