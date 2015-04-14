@@ -2,6 +2,8 @@ package lib
 
 import (
 	"encoding/json"
+	"flag"
+	"log"
 	"os"
 )
 
@@ -17,8 +19,19 @@ type VersionsConf struct {
 
 var Conf = new(VersionsConf)
 
+var (
+	conf_file = "/tmp/conf.json"
+	//conf_file = flag.String("conf_file", "/etc/overlord/conf.json", ""+
+	//	"The conf.json file listing all versions used as well "+
+	//	"as the URL of the Kubernetes binaries to deploy.")
+)
+
 func init() {
-	file, _ := os.Open("/conf.json")
+	flag.Parse()
+
+	log.Printf("conf_file: %s", conf_file)
+	file, _ := os.Open(*conf_file)
 	json.NewDecoder(file).Decode(Conf)
+
 	file.Close()
 }
