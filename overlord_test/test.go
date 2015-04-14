@@ -78,7 +78,7 @@ func nodeK8sCountTest(
 		_, bodyBytes, _ := goutils.HttpCreateRequest(p)
 
 		json.Unmarshal(bodyBytes, &nodesResult)
-		nodesCount := len(nodesResult.Nodes)
+		nodesCount := len(nodesResult.Items)
 
 		msg += fmt.Sprintf("ExpectedCount: %d, NodeCount: %d",
 			expectedNodeCount, nodesCount)
