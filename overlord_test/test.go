@@ -64,6 +64,7 @@ func nodeK8sCountTest(
 		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.Conf.KubernetesAPIPort)
 		masterAPIurl := fmt.Sprintf(
 			"%s/api/%s/nodes", endpoint, lib.Conf.KubernetesAPIVersion)
+		log.Printf("Retieving Kubernetes nodes from: %s", masterAPIurl)
 
 		headers := map[string]string{
 			"Content-Type": "application/json",
