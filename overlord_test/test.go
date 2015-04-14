@@ -60,7 +60,7 @@ func nodeK8sCountTest(
 		expectedNodeCount, _ := strconv.Atoi(
 			d.Stack.Parameters["kubernetes-minion-count"].(string))
 
-		var nodesResult lib.KNodesResult
+		var nodesResult lib.KNodesCountResult
 		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.Conf.KubernetesAPIPort)
 		masterAPIurl := fmt.Sprintf(
 			"%s/api/%s/nodes", endpoint, lib.Conf.KubernetesAPIVersion)

@@ -22,6 +22,14 @@ type KNodesResult struct {
 	CreationTimestamp string `json:"creationTimestamp,omitempty"`
 	SelfLink          string `json:"selfLink,omitempty"`
 	APIVersion        string `json:"apiVersion,omitempty"`
+	Nodes             KNodes `json:"nodes,omitempty"`
+}
+
+type KNodesCountResult struct {
+	Kind              string `json:"kind,omitempty"`
+	CreationTimestamp string `json:"creationTimestamp,omitempty"`
+	SelfLink          string `json:"selfLink,omitempty"`
+	APIVersion        string `json:"apiVersion,omitempty"`
 	Items             KNodes `json:"items,omitempty"`
 }
 
