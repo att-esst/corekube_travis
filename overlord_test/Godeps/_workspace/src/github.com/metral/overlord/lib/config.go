@@ -30,7 +30,7 @@ func init() {
 	flag.Parse()
 
 	log.Printf("conf_file: %s", conf_file)
-	file, _ := os.Open(*conf_file)
+	file, _ := os.Open(conf_file)
 	json.NewDecoder(file).Decode(Conf)
 
 	file.Close()
