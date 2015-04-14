@@ -23,86 +23,96 @@ import (
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/runtime"
 )
 
-func makeValidService() api.Service {
-	return api.Service{
-		ObjectMeta: api.ObjectMeta{
-			Name:            "valid",
-			Namespace:       "default",
-			Labels:          map[string]string{},
-			Annotations:     map[string]string{},
-			ResourceVersion: "1",
-		},
-		Spec: api.ServiceSpec{
-			Selector:        map[string]string{"key": "val"},
-			SessionAffinity: "None",
-			Ports:           []api.ServicePort{{Name: "p", Protocol: "TCP", Port: 8675}},
-		},
-	}
-}
-
-// TODO: This should be done on types that are not part of our API
 func TestBeforeUpdate(t *testing.T) {
-	testCases := []struct {
-		name      string
-		tweakSvc  func(oldSvc, newSvc *api.Service) // given basic valid services, each test case can customize them
+	tests := []struct {
+		old       runtime.Object
+		obj       runtime.Object
 		expectErr bool
 	}{
 		{
-			name: "no change",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				// nothing
+			obj: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       "#$%%invalid",
+				},
 			},
-			expectErr: false,
+			old:       &api.Service{},
+			expectErr: true,
 		},
 		{
-			name: "change port",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Spec.Ports[0].Port++
+			obj: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       "valid",
+				},
 			},
-			expectErr: false,
-		},
-		{
-			name: "bad namespace",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Namespace = "#$%%invalid"
+			old: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "bar",
+					ResourceVersion: "1",
+					Namespace:       "valid",
+				},
 			},
 			expectErr: true,
 		},
 		{
-			name: "change name",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Name += "2"
+			obj: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       "valid",
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "1.2.3.4",
+				},
+			},
+			old: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       "valid",
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "4.3.2.1",
+				},
 			},
 			expectErr: true,
 		},
 		{
-			name: "change portal IP",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				oldSvc.Spec.PortalIP = "1.2.3.4"
-				newSvc.Spec.PortalIP = "4.3.2.1"
+			obj: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       api.NamespaceDefault,
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "1.2.3.4",
+					Selector: map[string]string{"foo": "bar"},
+				},
 			},
-			expectErr: true,
-		},
-		{
-			name: "change selectpor",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Spec.Selector = map[string]string{"newkey": "newvalue"}
+			old: &api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:            "foo",
+					ResourceVersion: "1",
+					Namespace:       api.NamespaceDefault,
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "1.2.3.4",
+					Selector: map[string]string{"bar": "foo"},
+				},
 			},
-			expectErr: false,
 		},
 	}
-
-	for _, tc := range testCases {
-		oldSvc := makeValidService()
-		newSvc := makeValidService()
-		tc.tweakSvc(&oldSvc, &newSvc)
+	for _, test := range tests {
 		ctx := api.NewDefaultContext()
-		err := BeforeUpdate(Services, ctx, runtime.Object(&oldSvc), runtime.Object(&newSvc))
-		if tc.expectErr && err == nil {
-			t.Errorf("unexpected non-error for %q", tc.name)
+		err := BeforeUpdate(Services, ctx, test.obj, test.old)
+		if test.expectErr && err == nil {
+			t.Errorf("unexpected non-error for %v", test)
 		}
-		if !tc.expectErr && err != nil {
-			t.Errorf("unexpected error for %q: %v", tc.name, err)
+		if !test.expectErr && err != nil {
+			t.Errorf("unexpected error: %v for %v -> %v", err, test.obj, test.old)
 		}
 	}
 }

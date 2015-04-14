@@ -173,7 +173,7 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 		func(vs *api.VolumeSource, c fuzz.Continue) {
 			// Exactly one of the fields should be set.
 			//FIXME: the fuzz can still end up nil.  What if fuzz allowed me to say that?
-			fuzzOneOf(c, &vs.HostPath, &vs.EmptyDir, &vs.GCEPersistentDisk, &vs.AWSElasticBlockStore, &vs.GitRepo, &vs.Secret, &vs.NFS, &vs.ISCSI, &vs.Glusterfs)
+			fuzzOneOf(c, &vs.HostPath, &vs.EmptyDir, &vs.GCEPersistentDisk, &vs.GitRepo, &vs.Secret, &vs.NFS)
 		},
 		func(d *api.DNSPolicy, c fuzz.Continue) {
 			policies := []api.DNSPolicy{api.DNSClusterFirst, api.DNSDefault}
@@ -216,18 +216,11 @@ func FuzzerFor(t *testing.T, version string, src rand.Source) *fuzz.Fuzzer {
 		},
 		func(ss *api.ServiceSpec, c fuzz.Continue) {
 			c.FuzzNoCustom(ss) // fuzz self without calling this function again
-			if len(ss.Ports) == 0 {
-				// There must be at least 1 port.
-				ss.Ports = append(ss.Ports, api.ServicePort{})
-				c.Fuzz(&ss.Ports[0])
-			}
-			for i := range ss.Ports {
-				switch ss.Ports[i].TargetPort.Kind {
-				case util.IntstrInt:
-					ss.Ports[i].TargetPort.IntVal = 1 + ss.Ports[i].TargetPort.IntVal%65535 // non-zero
-				case util.IntstrString:
-					ss.Ports[i].TargetPort.StrVal = "x" + ss.Ports[i].TargetPort.StrVal // non-empty
-				}
+			switch ss.TargetPort.Kind {
+			case util.IntstrInt:
+				ss.TargetPort.IntVal = 1 + ss.TargetPort.IntVal%65535 // non-zero
+			case util.IntstrString:
+				ss.TargetPort.StrVal = "x" + ss.TargetPort.StrVal // non-empty
 			}
 		},
 		func(n *api.Node, c fuzz.Continue) {

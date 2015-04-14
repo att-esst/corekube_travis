@@ -22,7 +22,7 @@ type KNodesResult struct {
 	CreationTimestamp string `json:"creationTimestamp,omitempty"`
 	SelfLink          string `json:"selfLink,omitempty"`
 	APIVersion        string `json:"apiVersion,omitempty"`
-	Nodes             KNodes `json:"nodes,omitempty"`
+	Items             KNodes `json:"items,omitempty"`
 }
 
 type KNodes []KNode
@@ -80,11 +80,13 @@ func registerKNodes(master *FleetMachine, node *FleetMachine) {
 
 	// See if nodes discovered have been registered. If not, register
 	registered := false
-	for _, registeredKNode := range nodesResult.Nodes {
-		if registeredKNode.HostIP == node.PublicIP {
-			registered = true
+	/*
+		for _, registeredKNode := range nodesResult.Nodes {
+			if registeredKNode.HostIP == node.PublicIP {
+				registered = true
+			}
 		}
-	}
+	*/
 
 	if !registered {
 		register(endpoint, node.PublicIP)

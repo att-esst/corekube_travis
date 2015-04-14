@@ -28,14 +28,6 @@ import (
 
 func init() {
 	api.Scheme.AddDefaultingFuncs(
-		func(obj *ReplicationController) {
-			if len(obj.DesiredState.ReplicaSelector) == 0 {
-				obj.DesiredState.ReplicaSelector = obj.DesiredState.PodTemplate.Labels
-			}
-			if len(obj.Labels) == 0 {
-				obj.Labels = obj.DesiredState.PodTemplate.Labels
-			}
-		},
 		func(obj *Volume) {
 			if util.AllPtrFieldsNil(&obj.Source) {
 				obj.Source = VolumeSource{
@@ -74,15 +66,6 @@ func init() {
 			}
 			if obj.SessionAffinity == "" {
 				obj.SessionAffinity = AffinityTypeNone
-			}
-			for i := range obj.Ports {
-				sp := &obj.Ports[i]
-				if sp.Protocol == "" {
-					sp.Protocol = ProtocolTCP
-				}
-				if sp.ContainerPort == util.NewIntOrStringFromInt(0) || sp.ContainerPort == util.NewIntOrStringFromString("") {
-					sp.ContainerPort = util.NewIntOrStringFromInt(sp.Port)
-				}
 			}
 		},
 		func(obj *PodSpec) {

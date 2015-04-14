@@ -88,7 +88,7 @@ type Volume struct {
 	// Source represents the location and type of a volume to mount.
 	// This is optional for now. If not specified, the Volume is implied to be an EmptyDir.
 	// This implied behavior is deprecated and will be removed in a future version.
-	Source VolumeSource `json:"source,omitempty" description:"location and type of volume to mount; at most one of HostDir, EmptyDir, GCEPersistentDisk, AWSElasticBlockStore, or GitRepo; default is EmptyDir"`
+	Source VolumeSource `json:"source,omitempty" description:"location and type of volume to mount; at most one of HostDir, EmptyDir, GCEPersistentDisk, or GitRepo; default is EmptyDir"`
 }
 
 // VolumeSource represents the source location of a volume to mount.
@@ -105,20 +105,12 @@ type VolumeSource struct {
 	// GCEPersistentDisk represents a GCE Disk resource that is attached to a
 	// kubelet's host machine and then exposed to the pod.
 	GCEPersistentDisk *GCEPersistentDiskVolumeSource `json:"persistentDisk" description:"GCE disk resource attached to the host machine on demand"`
-	// AWSElasticBlockStore represents an AWS Disk resource that is attached to a
-	// kubelet's host machine and then exposed to the pod.
-	AWSElasticBlockStore *AWSElasticBlockStoreVolumeSource `json:"awsElasticBlockStore" description:"AWS disk resource attached to the host machine on demand"`
 	// GitRepo represents a git repository at a particular revision.
 	GitRepo *GitRepoVolumeSource `json:"gitRepo" description:"git repository at a particular revision"`
 	// Secret represents a secret to populate the volume with
 	Secret *SecretVolumeSource `json:"secret" description:"secret to populate volume with"`
 	// NFS represents an NFS mount on the host that shares a pod's lifetime
 	NFS *NFSVolumeSource `json:"nfs" description:"NFS volume that will be mounted in the host machine "`
-	// ISCSI represents an ISCSI Disk resource that is attached to a
-	// kubelet's host machine and then exposed to the pod.
-	ISCSI *ISCSIVolumeSource `json:"iscsi" description:"iSCSI disk attached to host machine on demand"`
-	// Glusterfs represents a Glusterfs mount on the host that shares a pod's lifetime
-	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume that will be mounted on the host machine "`
 }
 
 // Similar to VolumeSource but meant for the administrator who creates PVs.
@@ -127,15 +119,10 @@ type PersistentVolumeSource struct {
 	// GCEPersistentDisk represents a GCE Disk resource that is attached to a
 	// kubelet's host machine and then exposed to the pod.
 	GCEPersistentDisk *GCEPersistentDiskVolumeSource `json:"persistentDisk" description:"GCE disk resource provisioned by an admin"`
-	// AWSElasticBlockStore represents an AWS EBS volume that is attached to a
-	// kubelet's host machine and then exposed to the pod.
-	AWSElasticBlockStore *AWSElasticBlockStoreVolumeSource `json:"awsElasticBlockStore" description:"AWS disk resource provisioned by an admin"`
 	// HostPath represents a directory on the host.
 	// This is useful for development and testing only.
 	// on-host storage is not supported in any way.
 	HostPath *HostPathVolumeSource `json:"hostPath" description:"a HostPath provisioned by a developer or tester; for develment use only"`
-	// Glusterfs represents a Glusterfs volume that is attached to a host and exposed to the pod
-	Glusterfs *GlusterfsVolumeSource `json:"glusterfs" description:"Glusterfs volume resource provisioned by an admin"`
 }
 
 type PersistentVolume struct {
@@ -152,9 +139,8 @@ type PersistentVolumeSpec struct {
 	// Resources represents the actual resources of the volume
 	Capacity ResourceList `json:"capacity,omitempty" description:"a description of the persistent volume's resources and capacity"`
 	// Source represents the location and type of a volume to mount.
+	// AccessModeTypes are inferred from the Source.
 	PersistentVolumeSource `json:",inline" description:"the actual volume backing the persistent volume"`
-	// AccessModes contains all ways the volume can be mounted
-	AccessModes []AccessModeType `json:"accessModes,omitempty" description:"all ways the volume can be mounted"`
 	// holds the binding reference to a PersistentVolumeClaim
 	ClaimRef *ObjectReference `json:"claimRef,omitempty" description:"the binding reference to a persistent volume claim"`
 }
@@ -274,48 +260,6 @@ const (
 type GCEPersistentDiskVolumeSource struct {
 	// Unique name of the PD resource. Used to identify the disk in GCE
 	PDName string `json:"pdName" description:"unique name of the PD resource in GCE"`
-	// Required: Filesystem type to mount.
-	// Must be a filesystem type supported by the host operating system.
-	// Ex. "ext4", "xfs", "ntfs"
-	// TODO: how do we prevent errors in the filesystem from compromising the machine
-	// TODO: why omitempty if required?
-	FSType string `json:"fsType,omitempty" description:"file system type to mount, such as ext4, xfs, ntfs"`
-	// Optional: Partition on the disk to mount.
-	// If omitted, kubelet will attempt to mount the device name.
-	// Ex. For /dev/sda1, this field is "1", for /dev/sda, this field 0 or empty.
-	Partition int `json:"partition,omitempty" description:"partition on the disk to mount (e.g., '1' for /dev/sda1); if omitted the plain device name (e.g., /dev/sda) will be mounted"`
-	// Optional: Defaults to false (read/write). ReadOnly here will force
-	// the ReadOnly setting in VolumeMounts.
-	ReadOnly bool `json:"readOnly,omitempty" description:"read-only if true, read-write otherwise (false or unspecified)"`
-}
-
-// A ISCSI Disk can only be mounted as read/write once.
-type ISCSIVolumeSource struct {
-	// Required: iSCSI target portal
-	// the portal is either an IP or ip_addr:port if port is other than default (typically TCP ports 860 and 3260)
-	TargetPortal string `json:"targetPortal,omitempty" description:"iSCSI target portal"`
-	// Required:  target iSCSI Qualified Name
-	IQN string `json:"iqn,omitempty" description:"iSCSI Qualified Name"`
-	// Required: iSCSI target lun number
-	Lun int `json:"lun,omitempty" description:"iscsi target lun number"`
-	// Required: Filesystem type to mount.
-	// Must be a filesystem type supported by the host operating system.
-	// Ex. "ext4", "xfs", "ntfs"
-	// TODO: how do we prevent errors in the filesystem from compromising the machine
-	FSType string `json:"fsType,omitempty" description:"file system type to mount, such as ext4, xfs, ntfs"`
-	// Optional: Defaults to false (read/write). ReadOnly here will force
-	// the ReadOnly setting in VolumeMounts.
-	ReadOnly bool `json:"readOnly,omitempty" description:"read-only if true, read-write otherwise (false or unspecified)"`
-}
-
-// AWSElasticBlockStoreVolumeSource represents a Persistent Disk resource in AWS.
-//
-// An AWS PD must exist and be formatted before mounting to a container.
-// The disk must also be in the same AWS zone as the kubelet.
-// A AWS PD can only be mounted on a single machine.
-type AWSElasticBlockStoreVolumeSource struct {
-	// Unique id of the PD resource. Used to identify the disk in AWS
-	VolumeID string `json:"volumeID" description:"unique id of the PD resource in AWS"`
 	// Required: Filesystem type to mount.
 	// Must be a filesystem type supported by the host operating system.
 	// Ex. "ext4", "xfs", "ntfs"
@@ -467,11 +411,9 @@ type Container struct {
 	Name string `json:"name" description:"name of the container; must be a DNS_LABEL and unique within the pod; cannot be updated"`
 	// Required.
 	Image string `json:"image" description:"Docker image name"`
-	// Optional: The image's entrypoint is used if this is not provided; cannot be updated.
-	Entrypoint []string `json:"entrypoint,omitempty" description:"entrypoint array; not executed within a shell; the image's entrypoint is used if this is not provided; cannot be updated"`
-	// Optional: The image's cmd is used if this is not provided; cannot be updated.
-	Command []string `json:"command,omitempty" description:"command argv array; not executed within a shell; the image's cmd is used if this is not provided; cannot be updated"`
-	// Optional: Docker's default is used if this is not provided.
+	// Optional: Defaults to whatever is defined in the image.
+	Command []string `json:"command,omitempty" description:"command argv array; not executed within a shell; defaults to entrypoint or command in the image; cannot be updated"`
+	// Optional: Defaults to Docker's default.
 	WorkingDir string               `json:"workingDir,omitempty" description:"container's working directory; defaults to image's default; cannot be updated"`
 	Ports      []ContainerPort      `json:"ports,omitempty" description:"list of ports to expose from the container; cannot be updated"`
 	Env        []EnvVar             `json:"env,omitempty" description:"list of environment variables to set in the container; cannot be updated"`
@@ -776,27 +718,25 @@ type Service struct {
 
 	// Required.
 	Port int `json:"port" description:"port exposed by the service"`
-	// Optional: The name of the first port.
-	PortName string `json:"portName,omitempty" description:"the name of the first port; optional"`
 	// Optional: Defaults to "TCP".
 	Protocol Protocol `json:"protocol,omitempty" description:"protocol for port; must be UDP or TCP; TCP if unspecified"`
-	// ContainerPort is the name or number of the port on the container to direct traffic to.
-	// This is useful if the containers the service points to have multiple open ports.
-	// Optional: If unspecified, the first port on the container will be used.
-	ContainerPort util.IntOrString `json:"containerPort,omitempty" description:"number or name of the port to access on the containers belonging to pods targeted by the service; defaults to the container's first open port"`
 
 	// This service's labels.
 	Labels map[string]string `json:"labels,omitempty" description:"map of string keys and values that can be used to organize and categorize services"`
 
 	// This service will route traffic to pods having labels matching this selector. If null, no endpoints will be automatically created. If empty, all pods will be selected.
 	Selector map[string]string `json:"selector" description:"label keys and values that must match in order to receive traffic for this service; if empty, all pods are selected, if not specified, endpoints must be manually specified"`
-
 	// An external load balancer should be set up via the cloud-provider
 	CreateExternalLoadBalancer bool `json:"createExternalLoadBalancer,omitempty" description:"set up a cloud-provider-specific load balancer on an external IP"`
 
 	// PublicIPs are used by external load balancers, or can be set by
 	// users to handle external traffic that arrives at a node.
 	PublicIPs []string `json:"publicIPs,omitempty" description:"externally visible IPs (e.g. load balancers) that should be proxied to this service"`
+
+	// ContainerPort is the name or number of the port on the container to direct traffic to.
+	// This is useful if the containers the service points to have multiple open ports.
+	// Optional: If unspecified, the first port on the container will be used.
+	ContainerPort util.IntOrString `json:"containerPort,omitempty" description:"number or name of the port to access on the containers belonging to pods targeted by the service; defaults to the container's first open port"`
 
 	// PortalIP is usually assigned by the master.  If specified by the user
 	// we will try to respect it or else fail the request.  This field can
@@ -810,35 +750,6 @@ type Service struct {
 
 	// Optional: Supports "ClientIP" and "None".  Used to maintain session affinity.
 	SessionAffinity AffinityType `json:"sessionAffinity,omitempty" description:"enable client IP based session affinity; must be ClientIP or None; defaults to None"`
-
-	// Optional: Ports to expose on the service.  If this field is
-	// specified, the legacy fields (Port, PortName, Protocol, and
-	// ContainerPort) will be overwritten by the first member of this
-	// array.  If this field is not specified, it will be populated from
-	// the legacy fields.
-	Ports []ServicePort `json:"ports" description:"ports to be exposed on the service; if this field is specified, the legacy fields (Port, PortName, Protocol, and ContainerPort) will be overwritten by the first member of this array; if this field is not specified, it will be populated from the legacy fields"`
-}
-
-type ServicePort struct {
-	// Required: The name of this port within the service.  This must be a
-	// DNS_LABEL.  All ports within a ServiceSpec must have unique names.
-	// This maps to the 'Name' field in EndpointPort objects.
-	Name string `json:"name" description:"the name of this port; optional if only one port is defined"`
-
-	// Optional: The IP protocol for this port.  Supports "TCP" and "UDP",
-	// default is TCP.
-	Protocol Protocol `json:"protocol" description:"the protocol used by this port; must be UDP or TCP; TCP if unspecified"`
-
-	// Required: The port that will be exposed.
-	Port int `json:"port" description:"the port number that is exposed"`
-
-	// Optional: The port number on the target pod to direct traffic to.
-	// This is useful if the containers the service points to have multiple
-	// open ports.  If this is a string, it will be looked up as a named
-	// port in the target Pod's container ports.  If unspecified, the value
-	// of Port is used (an identity map) - note this is a different default
-	// than Service.ContainerPort.
-	ContainerPort util.IntOrString `json:"containerPort" description:"the port to access on the containers belonging to pods targeted by the service; defaults to the service port"`
 }
 
 // EndpointObjectReference is a reference to an object exposing the endpoint
@@ -973,17 +884,16 @@ type NodeConditionKind string
 // node condition. In the future, we will add more. The proposed set of conditions are:
 // NodeReachable, NodeLive, NodeReady, NodeSchedulable, NodeRunnable.
 const (
-	// NodeReachable means the node can be reached (in the sense of HTTP connection) within cluster.
+	// NodeReachable means the node can be reached (in the sense of HTTP connection) from node controller.
 	NodeReachable NodeConditionKind = "Reachable"
-	// NodeReady means kubelet is healthy and ready to accept pods.
+	// NodeReady means the node returns StatusOK for HTTP health check.
 	NodeReady NodeConditionKind = "Ready"
 	// NodeSchedulable means the node is ready to accept new pods.
-	// DEPRECATED: this kind of condition is unused and has no effect even if present.
 	NodeSchedulable NodeConditionKind = "Schedulable"
 )
 
 type NodeCondition struct {
-	Kind               NodeConditionKind `json:"kind" description:"kind of the condition, one of Reachable, Ready, Schedulable"`
+	Kind               NodeConditionKind `json:"kind" description:"kind of the condition, one of Reachable, Ready"`
 	Status             ConditionStatus   `json:"status" description:"status of the condition, one of Full, None, Unknown"`
 	LastProbeTime      util.Time         `json:"lastProbeTime,omitempty" description:"last time the condition was probed"`
 	LastTransitionTime util.Time         `json:"lastTransitionTime,omitempty" description:"last time the condition transit from one status to another"`
@@ -1136,17 +1046,6 @@ type ListOptions struct {
 	Watch bool `json:"watch" description:"watch for changes to the described resources and return them as a stream of add, update, and remove notifications; specify resourceVersion"`
 	// The desired resource version to watch
 	ResourceVersion string `json:"resourceVersion" description:"when specified with a watch call, shows changes that occur after that particular version of a resource; defaults to changes from the beginning of history"`
-}
-
-// PodLogOptions is the query options for a Pod's logs REST call
-type PodLogOptions struct {
-	TypeMeta `json:",inline"`
-
-	// Container for which to return logs
-	Container string `json:"container,omitempty" description:"the container for which to stream logs; defaults to only container if there is one container in the pod"`
-
-	// If true, follow the logs for the pod
-	Follow bool `json:"follow,omitempty" description:"follow the log stream of the pod; defaults to false"`
 }
 
 // Status is a return value for calls that don't return other objects.
@@ -1426,8 +1325,6 @@ type LimitRangeItem struct {
 	Max ResourceList `json:"max,omitempty" description:"max usage constraints on this kind by resource name"`
 	// Min usage constraints on this kind by resource name
 	Min ResourceList `json:"min,omitempty" description:"min usage constraints on this kind by resource name"`
-	// Default usage constraints on this kind by resource name
-	Default ResourceList `json:"default,omitempty" description:"default values on this kind by resource name if omitted"`
 }
 
 // LimitRangeSpec defines a min/max usage limit for resources that match on kind
@@ -1521,7 +1418,7 @@ type Secret struct {
 	// representing the arbitrary (possibly non-string) data value here.
 	Data map[string][]byte `json:"data,omitempty" description:"data contains the secret data.  Each key must be a valid DNS_SUBDOMAIN.  Each value must be a base64 encoded string"`
 
-	// Used to facilitate programmatic handling of secret data.
+	// Used to facilitate programatic handling of secret data.
 	Type SecretType `json:"type,omitempty" description:"type facilitates programmatic handling of secret data"`
 }
 
@@ -1537,17 +1434,4 @@ type SecretList struct {
 	TypeMeta `json:",inline"`
 
 	Items []Secret `json:"items" description:"items is a list of secret objects"`
-}
-
-// GlusterfsVolumeSource represents a Glusterfs Mount that lasts the lifetime of a pod
-type GlusterfsVolumeSource struct {
-	// Required: EndpointsName is the endpoint name that details Glusterfs topology
-	EndpointsName string `json:"endpoints" description:"gluster hosts endpoints name"`
-
-	// Required: Path is the Glusterfs volume path
-	Path string `json:"path" description:"path to gluster volume"`
-
-	// Optional: Defaults to false (read/write). ReadOnly here will force
-	// the Glusterfs volume to be mounted with read-only permissions
-	ReadOnly bool `json:"readOnly,omitempty" description:"Glusterfs volume to be mounted with read-only permissions"`
 }

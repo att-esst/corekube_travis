@@ -27,22 +27,9 @@ func init() {
 	err := newer.Scheme.AddFieldLabelConversionFunc("v1beta3", "Pod",
 		func(label, value string) (string, string, error) {
 			switch label {
-			case "metadata.name",
+			case "name",
 				"status.phase",
 				"spec.host":
-				return label, value, nil
-			default:
-				return "", "", fmt.Errorf("field label not supported: %s", label)
-			}
-		})
-	if err != nil {
-		// If one of the conversion functions is malformed, detect it immediately.
-		panic(err)
-	}
-	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta3", "Node",
-		func(label, value string) (string, string, error) {
-			switch label {
-			case "metadata.name":
 				return label, value, nil
 			default:
 				return "", "", fmt.Errorf("field label not supported: %s", label)
@@ -55,9 +42,10 @@ func init() {
 	err = newer.Scheme.AddFieldLabelConversionFunc("v1beta3", "ReplicationController",
 		func(label, value string) (string, string, error) {
 			switch label {
-			case "metadata.name",
-				"status.replicas":
-				return label, value, nil
+			case "name":
+				return "name", value, nil
+			case "status.replicas":
+				return "status.replicas", value, nil
 			default:
 				return "", "", fmt.Errorf("field label not supported: %s", label)
 			}

@@ -71,7 +71,7 @@ type Converter struct {
 
 // NewConverter creates a new Converter object.
 func NewConverter() *Converter {
-	c := &Converter{
+	return &Converter{
 		conversionFuncs:    map[typePair]reflect.Value{},
 		defaultingFuncs:    map[reflect.Type]reflect.Value{},
 		nameFunc:           func(t reflect.Type) string { return t.Name() },
@@ -81,15 +81,6 @@ func NewConverter() *Converter {
 		inputFieldMappingFuncs: map[reflect.Type]FieldMappingFunc{},
 		inputDefaultFlags:      map[reflect.Type]FieldMatchingFlags{},
 	}
-	c.RegisterConversionFunc(byteSliceCopy)
-	return c
-}
-
-// Prevent recursing into every byte...
-func byteSliceCopy(in *[]byte, out *[]byte, s Scope) error {
-	*out = make([]byte, len(*in))
-	copy(*out, *in)
-	return nil
 }
 
 // Scope is passed to conversion funcs to allow them to continue an ongoing conversion.

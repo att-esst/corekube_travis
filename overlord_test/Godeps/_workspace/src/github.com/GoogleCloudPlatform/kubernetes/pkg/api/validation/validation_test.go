@@ -353,19 +353,6 @@ func TestValidatePersistentVolumeClaim(t *testing.T) {
 				},
 			}),
 		},
-		"invalid-resource-requests": {
-			isExpectedFailure: true,
-			claim: testVolumeClaim("foo", "ns", api.PersistentVolumeClaimSpec{
-				AccessModes: []api.AccessModeType{
-					api.ReadWriteOnce,
-				},
-				Resources: api.ResourceRequirements{
-					Requests: api.ResourceList{
-						api.ResourceName(api.ResourceMemory): resource.MustParse("10G"),
-					},
-				},
-			}),
-		},
 	}
 
 	for name, scenario := range scenarios {
@@ -379,136 +366,6 @@ func TestValidatePersistentVolumeClaim(t *testing.T) {
 	}
 }
 
-func TestValidatePersistentVolumeClaimUpdate(t *testing.T) {
-
-	pvcA := &api.PersistentVolumeClaim{
-		ObjectMeta: api.ObjectMeta{
-			Name:      "foo",
-			Namespace: "ns",
-			Labels: map[string]string{
-				"nice-label": "fizzbuzz",
-			},
-		},
-		Spec: api.PersistentVolumeClaimSpec{
-			AccessModes: []api.AccessModeType{
-				api.ReadWriteOnce,
-			},
-			Resources: api.ResourceRequirements{
-				Requests: api.ResourceList{
-					api.ResourceName(api.ResourceStorage): resource.MustParse("10G"),
-				},
-			},
-		},
-	}
-
-	// AccessModes differ from pvcA
-	pvcB := &api.PersistentVolumeClaim{
-		ObjectMeta: api.ObjectMeta{
-			Name:      "foo",
-			Namespace: "ns",
-			Labels: map[string]string{
-				"nice-label": "fizzbuzz",
-			},
-		},
-		Spec: api.PersistentVolumeClaimSpec{
-			AccessModes: []api.AccessModeType{
-				api.ReadWriteMany,
-			},
-			Resources: api.ResourceRequirements{
-				Requests: api.ResourceList{
-					api.ResourceName(api.ResourceStorage): resource.MustParse("10G"),
-				},
-			},
-		},
-	}
-
-	// Resources differ from pvcA
-	pvcC := &api.PersistentVolumeClaim{
-		ObjectMeta: api.ObjectMeta{
-			Name:      "foo",
-			Namespace: "ns",
-			Labels: map[string]string{
-				"nice-label": "fizzbuzz",
-			},
-		},
-		Spec: api.PersistentVolumeClaimSpec{
-			AccessModes: []api.AccessModeType{
-				api.ReadWriteOnce,
-			},
-			Resources: api.ResourceRequirements{
-				Requests: api.ResourceList{
-					api.ResourceName(api.ResourceStorage): resource.MustParse("7G"),
-				},
-			},
-		},
-	}
-
-	// Labels differ from pvcA
-	pvcD := &api.PersistentVolumeClaim{
-		ObjectMeta: api.ObjectMeta{
-			Name:      "foo",
-			Namespace: "ns",
-			Labels: map[string]string{
-				"nice-label": "buzzfizz",
-			},
-		},
-		Spec: api.PersistentVolumeClaimSpec{
-			AccessModes: []api.AccessModeType{
-				api.ReadWriteOnce,
-			},
-			Resources: api.ResourceRequirements{
-				Requests: api.ResourceList{
-					api.ResourceName(api.ResourceStorage): resource.MustParse("10G"),
-				},
-			},
-		},
-	}
-
-	scenarios := map[string]struct {
-		isExpectedFailure bool
-		oldClaim          *api.PersistentVolumeClaim
-		newClaim          *api.PersistentVolumeClaim
-	}{
-		"invalid-accessmodes-change": {
-			isExpectedFailure: true,
-			oldClaim:          pvcA,
-			newClaim:          pvcB,
-		},
-		"invalid-resources-change": {
-			isExpectedFailure: true,
-			oldClaim:          pvcA,
-			newClaim:          pvcC,
-		},
-		"valid-label-change": {
-			isExpectedFailure: false,
-			oldClaim:          pvcA,
-			newClaim:          pvcD,
-		},
-	}
-
-	// validation errors on Update only occur if the Claim is already bound.
-	// failures are only expected after binding
-	for name, scenario := range scenarios {
-		errs := ValidatePersistentVolumeClaimUpdate(scenario.newClaim, scenario.oldClaim)
-		if len(errs) > 0 && !scenario.isExpectedFailure {
-			t.Errorf("Unexpected failure for scenario: %s - %+v", name, errs)
-		}
-	}
-
-	// 2 of 3 scenarios above are invalid if the old PVC has a bound PV
-	for name, scenario := range scenarios {
-		scenario.oldClaim.Status.VolumeRef = &api.ObjectReference{Name: "foo", Namespace: "ns"}
-		errs := ValidatePersistentVolumeClaimUpdate(scenario.newClaim, scenario.oldClaim)
-		if len(errs) == 0 && scenario.isExpectedFailure {
-			t.Errorf("Unexpected success for scenario: %s", name)
-		}
-		if len(errs) > 0 && !scenario.isExpectedFailure {
-			t.Errorf("Unexpected failure for scenario: %s - %+v", name, errs)
-		}
-	}
-
-}
-
 func TestValidateVolumes(t *testing.T) {
 	successCase := []api.Volume{
 		{Name: "abc", VolumeSource: api.VolumeSource{HostPath: &api.HostPathVolumeSource{"/mnt/path1"}}},
@@ -516,24 +373,17 @@ func TestValidateVolumes(t *testing.T) {
 		{Name: "abc-123", VolumeSource: api.VolumeSource{HostPath: &api.HostPathVolumeSource{"/mnt/path3"}}},
 		{Name: "empty", VolumeSource: api.VolumeSource{EmptyDir: &api.EmptyDirVolumeSource{}}},
 		{Name: "gcepd", VolumeSource: api.VolumeSource{GCEPersistentDisk: &api.GCEPersistentDiskVolumeSource{"my-PD", "ext4", 1, false}}},
-		{Name: "awsebs", VolumeSource: api.VolumeSource{AWSElasticBlockStore: &api.AWSElasticBlockStoreVolumeSource{"my-PD", "ext4", 1, false}}},
 		{Name: "gitrepo", VolumeSource: api.VolumeSource{GitRepo: &api.GitRepoVolumeSource{"my-repo", "hashstring"}}},
-		{Name: "iscsidisk", VolumeSource: api.VolumeSource{ISCSI: &api.ISCSIVolumeSource{"127.0.0.1", "iqn.2015-02.example.com:test", 1, "ext4", false}}},
 		{Name: "secret", VolumeSource: api.VolumeSource{Secret: &api.SecretVolumeSource{"my-secret"}}},
-		{Name: "glusterfs", VolumeSource: api.VolumeSource{Glusterfs: &api.GlusterfsVolumeSource{"host1", "path", false}}},
 	}
 	names, errs := validateVolumes(successCase)
 	if len(errs) != 0 {
 		t.Errorf("expected success: %v", errs)
 	}
-	if len(names) != len(successCase) || !names.HasAll("abc", "123", "abc-123", "empty", "gcepd", "gitrepo", "secret", "iscsidisk") {
+	if len(names) != len(successCase) || !names.HasAll("abc", "123", "abc-123", "empty", "gcepd", "gitrepo", "secret") {
 		t.Errorf("wrong names result: %v", names)
 	}
 	emptyVS := api.VolumeSource{EmptyDir: &api.EmptyDirVolumeSource{}}
-	emptyPortal := api.VolumeSource{ISCSI: &api.ISCSIVolumeSource{"", "iqn.2015-02.example.com:test", 1, "ext4", false}}
-	emptyIQN := api.VolumeSource{ISCSI: &api.ISCSIVolumeSource{"127.0.0.1", "", 1, "ext4", false}}
-	emptyHosts := api.VolumeSource{Glusterfs: &api.GlusterfsVolumeSource{"", "path", false}}
-	emptyPath := api.VolumeSource{Glusterfs: &api.GlusterfsVolumeSource{"host", "", false}}
 	errorCases := map[string]struct {
 		V []api.Volume
 		T errors.ValidationErrorType
@@ -543,10 +393,6 @@ func TestValidateVolumes(t *testing.T) {
 		"name > 63 characters": {[]api.Volume{{Name: strings.Repeat("a", 64), VolumeSource: emptyVS}}, errors.ValidationErrorTypeInvalid, "[0].name"},
 		"name not a DNS label": {[]api.Volume{{Name: "a.b.c", VolumeSource: emptyVS}}, errors.ValidationErrorTypeInvalid, "[0].name"},
 		"name not unique":      {[]api.Volume{{Name: "abc", VolumeSource: emptyVS}, {Name: "abc", VolumeSource: emptyVS}}, errors.ValidationErrorTypeDuplicate, "[1].name"},
-		"empty portal":         {[]api.Volume{{Name: "badportal", VolumeSource: emptyPortal}}, errors.ValidationErrorTypeRequired, "[0].source.iscsi.targetPortal"},
-		"empty iqn":            {[]api.Volume{{Name: "badiqn", VolumeSource: emptyIQN}}, errors.ValidationErrorTypeRequired, "[0].source.iscsi.iqn"},
-		"empty hosts":          {[]api.Volume{{Name: "badhost", VolumeSource: emptyHosts}}, errors.ValidationErrorTypeRequired, "[0].source.glusterfs.endpoints"},
-		"empty path":           {[]api.Volume{{Name: "badpath", VolumeSource: emptyPath}}, errors.ValidationErrorTypeRequired, "[0].source.glusterfs.path"},
 	}
 	for k, v := range errorCases {
 		_, errs := validateVolumes(v.V)
@@ -1377,254 +1223,220 @@ func TestValidatePodUpdate(t *testing.T) {
 	}
 }
 
-func makeValidService() api.Service {
-	return api.Service{
-		ObjectMeta: api.ObjectMeta{
-			Name:            "valid",
-			Namespace:       "valid",
-			Labels:          map[string]string{},
-			Annotations:     map[string]string{},
-			ResourceVersion: "1",
-		},
-		Spec: api.ServiceSpec{
-			Selector:        map[string]string{"key": "val"},
-			SessionAffinity: "None",
-			Ports:           []api.ServicePort{{Name: "p", Protocol: "TCP", Port: 8675}},
-		},
-	}
-}
-
 func TestValidateService(t *testing.T) {
 	testCases := []struct {
-		name     string
-		tweakSvc func(svc *api.Service) // given a basic valid service, each test case can customize it
-		numErrs  int
+		name    string
+		makeSvc func(svc *api.Service) // given a basic valid service, each test case can customize it
+		numErrs int
 	}{
 		{
 			name: "missing namespace",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Namespace = ""
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid namespace",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Namespace = "-123"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "missing name",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Name = ""
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid name",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Name = "-123"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "too long name",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Name = strings.Repeat("a", 25)
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid generateName",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.GenerateName = "-123"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "too long generateName",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.GenerateName = strings.Repeat("a", 25)
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid label",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Labels["NoUppercaseOrSpecialCharsLike=Equals"] = "bar"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid annotation",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Annotations["NoSpecialCharsLike=Equals"] = "bar"
 			},
 			numErrs: 1,
 		},
 		{
-			name: "nil selector",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Selector = nil
-			},
-			numErrs: 0,
-		},
-		{
 			name: "invalid selector",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.Selector["NoSpecialCharsLike=Equals"] = "bar"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "missing session affinity",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.SessionAffinity = ""
 			},
 			numErrs: 1,
 		},
 		{
-			name: "missing ports",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports = nil
-			},
-			numErrs: 1,
-		},
-		{
-			name: "empty port[0] name",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Name = ""
-			},
-			numErrs: 0,
-		},
-		{
-			name: "empty port[1] name",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports = append(s.Spec.Ports, api.ServicePort{Name: "", Protocol: "TCP", Port: 12345})
-			},
-			numErrs: 1,
-		},
-		{
-			name: "invalid port name",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Name = "INVALID"
-			},
-			numErrs: 1,
-		},
-		{
 			name: "missing protocol",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Protocol = ""
+			makeSvc: func(s *api.Service) {
+				s.Spec.Protocol = ""
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid protocol",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Protocol = "INVALID"
+			makeSvc: func(s *api.Service) {
+				s.Spec.Protocol = "INVALID"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid portal ip",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PortalIP = "invalid"
 			},
 			numErrs: 1,
 		},
 		{
 			name: "missing port",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Port = 0
+			makeSvc: func(s *api.Service) {
+				s.Spec.Port = 0
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid port",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Port = 65536
+			makeSvc: func(s *api.Service) {
+				s.Spec.Port = 65536
 			},
 			numErrs: 1,
 		},
 		{
-			name: "invalid TargetPort int",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].TargetPort = util.NewIntOrStringFromInt(65536)
+			name: "missing targetPort string",
+			makeSvc: func(s *api.Service) {
+				s.Spec.TargetPort = util.NewIntOrStringFromString("")
+			},
+			numErrs: 1,
+		},
+		{
+			name: "invalid targetPort int",
+			makeSvc: func(s *api.Service) {
+				s.Spec.TargetPort = util.NewIntOrStringFromInt(65536)
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid publicIPs localhost",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PublicIPs = []string{"127.0.0.1"}
 			},
 			numErrs: 1,
 		},
 		{
 			name: "invalid publicIPs",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PublicIPs = []string{"0.0.0.0"}
 			},
 			numErrs: 1,
 		},
 		{
 			name: "valid publicIPs host",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PublicIPs = []string{"myhost.mydomain"}
 			},
 			numErrs: 0,
 		},
 		{
-			name: "dup port name",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Name = "p"
-				s.Spec.Ports = append(s.Spec.Ports, api.ServicePort{Name: "p", Port: 12345})
+			name: "nil selector",
+			makeSvc: func(s *api.Service) {
+				s.Spec.Selector = nil
 			},
-			numErrs: 1,
+			numErrs: 0,
 		},
 		{
 			name: "valid 1",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				// do nothing
 			},
 			numErrs: 0,
 		},
 		{
 			name: "valid 2",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].Protocol = "UDP"
-				s.Spec.Ports[0].TargetPort = util.NewIntOrStringFromInt(12345)
+			makeSvc: func(s *api.Service) {
+				s.Spec.Protocol = "UDP"
+				s.Spec.TargetPort = util.NewIntOrStringFromInt(12345)
 			},
 			numErrs: 0,
 		},
 		{
 			name: "valid 3",
-			tweakSvc: func(s *api.Service) {
-				s.Spec.Ports[0].TargetPort = util.NewIntOrStringFromString("http")
+			makeSvc: func(s *api.Service) {
+				s.Spec.TargetPort = util.NewIntOrStringFromString("http")
 			},
 			numErrs: 0,
 		},
 		{
 			name: "valid portal ip - none ",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PortalIP = "None"
 			},
 			numErrs: 0,
 		},
 		{
 			name: "valid portal ip - empty",
-			tweakSvc: func(s *api.Service) {
+			makeSvc: func(s *api.Service) {
 				s.Spec.PortalIP = ""
-				s.Spec.Ports[0].TargetPort = util.NewIntOrStringFromString("http")
 			},
 			numErrs: 0,
 		},
 	}
 
 	for _, tc := range testCases {
-		svc := makeValidService()
-		tc.tweakSvc(&svc)
+		svc := api.Service{
+			ObjectMeta: api.ObjectMeta{
+				Name:        "valid",
+				Namespace:   "valid",
+				Labels:      map[string]string{},
+				Annotations: map[string]string{},
+			},
+			Spec: api.ServiceSpec{
+				Selector:        map[string]string{"key": "val"},
+				SessionAffinity: "None",
+				Port:            8675,
+				Protocol:        "TCP",
+			},
+		}
+		tc.makeSvc(&svc)
 		errs := ValidateService(&svc)
 		if len(errs) != tc.numErrs {
 			t.Errorf("Unexpected error list for case %q: %v", tc.name, utilerrors.NewAggregate(errs))
@@ -2262,85 +2074,172 @@ func TestValidateMinionUpdate(t *testing.T) {
 }
 
 func TestValidateServiceUpdate(t *testing.T) {
-	testCases := []struct {
-		name     string
-		tweakSvc func(oldSvc, newSvc *api.Service) // given basic valid services, each test case can customize them
-		numErrs  int
+	tests := []struct {
+		oldService api.Service
+		service    api.Service
+		valid      bool
 	}{
-		{
-			name: "no change",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				// do nothing
+		{ // 0
+			api.Service{},
+			api.Service{},
+			true},
+		{ // 1
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name: "foo"}},
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name: "bar"},
+			}, false},
+		{ // 2
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"foo": "bar"},
+				},
 			},
-			numErrs: 0,
-		},
-		{
-			name: "change name",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Name += "2"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"foo": "baz"},
+				},
+			}, true},
+		{ // 3
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name: "foo",
+				},
 			},
-			numErrs: 1,
-		},
-		{
-			name: "change namespace",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Namespace += "2"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"foo": "baz"},
+				},
+			}, true},
+		{ // 4
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "foo"},
+				},
 			},
-			numErrs: 1,
-		},
-		{
-			name: "change label valid",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Labels["key"] = "other-value"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"foo": "baz"},
+				},
+			}, true},
+		{ // 5
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:        "foo",
+					Annotations: map[string]string{"bar": "foo"},
+				},
 			},
-			numErrs: 0,
-		},
-		{
-			name: "add label",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Labels["key2"] = "value2"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:        "foo",
+					Annotations: map[string]string{"foo": "baz"},
+				},
+			}, true},
+		{ // 6
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name: "foo",
+				},
+				Spec: api.ServiceSpec{
+					Selector: map[string]string{"foo": "baz"},
+				},
 			},
-			numErrs: 0,
-		},
-		{
-			name: "change portal IP",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				oldSvc.Spec.PortalIP = "1.2.3.4"
-				newSvc.Spec.PortalIP = "8.6.7.5"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name: "foo",
+				},
+				Spec: api.ServiceSpec{
+					Selector: map[string]string{"foo": "baz"},
+				},
+			}, true},
+		{ // 7
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "foo"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "127.0.0.1",
+				},
 			},
-			numErrs: 1,
-		},
-		{
-			name: "remove portal IP",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				oldSvc.Spec.PortalIP = "1.2.3.4"
-				newSvc.Spec.PortalIP = ""
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "fooobaz"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "new",
+				},
+			}, false},
+		{ // 8
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "foo"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "127.0.0.1",
+				},
 			},
-			numErrs: 1,
-		},
-		{
-			name: "change affinity",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Spec.SessionAffinity = "ClientIP"
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "fooobaz"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "",
+				},
+			}, false},
+		{ // 9
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "foo"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "127.0.0.1",
+				},
 			},
-			numErrs: 0,
-		},
-		{
-			name: "remove affinity",
-			tweakSvc: func(oldSvc, newSvc *api.Service) {
-				newSvc.Spec.SessionAffinity = ""
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"bar": "fooobaz"},
+				},
+				Spec: api.ServiceSpec{
+					PortalIP: "127.0.0.2",
+				},
+			}, false},
+		{ // 10
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"foo": "baz"},
+				},
 			},
-			numErrs: 1,
-		},
+			api.Service{
+				ObjectMeta: api.ObjectMeta{
+					Name:   "foo",
+					Labels: map[string]string{"Foo": "baz"},
+				},
+			}, true},
 	}
-
-	for _, tc := range testCases {
-		oldSvc := makeValidService()
-		newSvc := makeValidService()
-		tc.tweakSvc(&oldSvc, &newSvc)
-		errs := ValidateServiceUpdate(&oldSvc, &newSvc)
-		if len(errs) != tc.numErrs {
-			t.Errorf("Unexpected error list for case %q: %v", tc.name, utilerrors.NewAggregate(errs))
+	for i, test := range tests {
+		test.oldService.ObjectMeta.ResourceVersion = "1"
+		test.service.ObjectMeta.ResourceVersion = "1"
+		errs := ValidateServiceUpdate(&test.oldService, &test.service)
+		if test.valid && len(errs) > 0 {
+			t.Errorf("%d: Unexpected error: %v", i, errs)
+			t.Logf("%#v vs %#v", test.oldService.ObjectMeta, test.service.ObjectMeta)
+		}
+		if !test.valid && len(errs) == 0 {
+			t.Errorf("%d: Unexpected non-error", i)
 		}
 	}
 }
@@ -2534,9 +2433,6 @@ func TestValidateNamespace(t *testing.T) {
 		},
 		{
 			ObjectMeta: api.ObjectMeta{Name: "abc-123"},
-			Spec: api.NamespaceSpec{
-				Finalizers: []api.FinalizerName{"example.com/something", "example.com/other"},
-			},
 		},
 	}
 	for _, successCase := range successCases {
@@ -2600,20 +2496,6 @@ func TestValidateNamespaceFinalizeUpdate(t *testing.T) {
 					Finalizers: []api.FinalizerName{"foo.com/bar", "what.com/bar"},
 				},
 			}, true},
-		{api.Namespace{
-			ObjectMeta: api.ObjectMeta{
-				Name: "fooemptyfinalizer"},
-			Spec: api.NamespaceSpec{
-				Finalizers: []api.FinalizerName{"foo.com/bar"},
-			},
-		},
-			api.Namespace{
-				ObjectMeta: api.ObjectMeta{
-					Name: "fooemptyfinalizer"},
-				Spec: api.NamespaceSpec{
-					Finalizers: []api.FinalizerName{"", "foo.com/bar", "what.com/bar"},
-				},
-			}, false},
 	}
 	for i, test := range tests {
 		test.namespace.ObjectMeta.ResourceVersion = "1"
@@ -2630,29 +2512,12 @@ func TestValidateNamespaceFinalizeUpdate(t *testing.T) {
 }
 
 func TestValidateNamespaceStatusUpdate(t *testing.T) {
-	now := util.Now()
-
 	tests := []struct {
 		oldNamespace api.Namespace
 		namespace    api.Namespace
 		valid        bool
 	}{
-		{api.Namespace{}, api.Namespace{
-			Status: api.NamespaceStatus{
-				Phase: api.NamespaceActive,
-			},
-		}, true},
-		{api.Namespace{
-			ObjectMeta: api.ObjectMeta{
-				Name: "foo"}},
-			api.Namespace{
-				ObjectMeta: api.ObjectMeta{
-					Name:              "foo",
-					DeletionTimestamp: &now},
-				Status: api.NamespaceStatus{
-					Phase: api.NamespaceTerminating,
-				},
-			}, true},
+		{api.Namespace{}, api.Namespace{}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
 				Name: "foo"}},
@@ -2662,7 +2527,7 @@ func TestValidateNamespaceStatusUpdate(t *testing.T) {
 				Status: api.NamespaceStatus{
 					Phase: api.NamespaceTerminating,
 				},
-			}, false},
+			}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
 				Name: "foo"}},
@@ -2677,7 +2542,7 @@ func TestValidateNamespaceStatusUpdate(t *testing.T) {
 	for i, test := range tests {
 		test.namespace.ObjectMeta.ResourceVersion = "1"
 		test.oldNamespace.ObjectMeta.ResourceVersion = "1"
-		errs := ValidateNamespaceStatusUpdate(&test.namespace, &test.oldNamespace)
+		errs := ValidateNamespaceStatusUpdate(&test.oldNamespace, &test.namespace)
 		if test.valid && len(errs) > 0 {
 			t.Errorf("%d: Unexpected error: %v", i, errs)
 			t.Logf("%#v vs %#v", test.oldNamespace.ObjectMeta, test.namespace.ObjectMeta)
@@ -2697,76 +2562,59 @@ func TestValidateNamespaceUpdate(t *testing.T) {
 		{api.Namespace{}, api.Namespace{}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name: "foo1"}},
+				Name: "foo"}},
 			api.Namespace{
 				ObjectMeta: api.ObjectMeta{
-					Name: "bar1"},
+					Name: "bar"},
 			}, false},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo2",
+				Name:   "foo",
 				Labels: map[string]string{"foo": "bar"},
 			},
 		}, api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo2",
+				Name:   "foo",
 				Labels: map[string]string{"foo": "baz"},
 			},
 		}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name: "foo3",
+				Name: "foo",
 			},
 		}, api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo3",
+				Name:   "foo",
 				Labels: map[string]string{"foo": "baz"},
 			},
 		}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo4",
+				Name:   "foo",
 				Labels: map[string]string{"bar": "foo"},
 			},
 		}, api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo4",
+				Name:   "foo",
 				Labels: map[string]string{"foo": "baz"},
 			},
 		}, true},
 		{api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo5",
+				Name:   "foo",
 				Labels: map[string]string{"foo": "baz"},
 			},
 		}, api.Namespace{
 			ObjectMeta: api.ObjectMeta{
-				Name:   "foo5",
+				Name:   "foo",
 				Labels: map[string]string{"Foo": "baz"},
-			},
-		}, true},
-		{api.Namespace{
-			ObjectMeta: api.ObjectMeta{
-				Name:   "foo6",
-				Labels: map[string]string{"foo": "baz"},
-			},
-		}, api.Namespace{
-			ObjectMeta: api.ObjectMeta{
-				Name:   "foo6",
-				Labels: map[string]string{"Foo": "baz"},
-			},
-			Spec: api.NamespaceSpec{
-				Finalizers: []api.FinalizerName{"kubernetes"},
-			},
-			Status: api.NamespaceStatus{
-				Phase: api.NamespaceTerminating,
 			},
 		}, true},
 	}
 	for i, test := range tests {
 		test.namespace.ObjectMeta.ResourceVersion = "1"
 		test.oldNamespace.ObjectMeta.ResourceVersion = "1"
-		errs := ValidateNamespaceUpdate(&test.namespace, &test.oldNamespace)
+		errs := ValidateNamespaceUpdate(&test.oldNamespace, &test.namespace)
 		if test.valid && len(errs) > 0 {
 			t.Errorf("%d: Unexpected error: %v", i, errs)
 			t.Logf("%#v vs %#v", test.oldNamespace.ObjectMeta, test.namespace.ObjectMeta)
@@ -2830,178 +2678,5 @@ func TestValidateSecret(t *testing.T) {
 }
 
 func TestValidateEndpoints(t *testing.T) {
-	successCases := map[string]api.Endpoints{
-		"simple endpoint": {
-			ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-			Subsets: []api.EndpointSubset{
-				{
-					Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}, {IP: "10.10.2.2"}},
-					Ports:     []api.EndpointPort{{Name: "a", Port: 8675, Protocol: "TCP"}, {Name: "b", Port: 309, Protocol: "TCP"}},
-				},
-				{
-					Addresses: []api.EndpointAddress{{IP: "10.10.3.3"}},
-					Ports:     []api.EndpointPort{{Name: "a", Port: 93, Protocol: "TCP"}, {Name: "b", Port: 76, Protocol: "TCP"}},
-				},
-			},
-		},
-		"empty subsets": {
-			ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-		},
-		"no name required for singleton port": {
-			ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-			Subsets: []api.EndpointSubset{
-				{
-					Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-					Ports:     []api.EndpointPort{{Port: 8675, Protocol: "TCP"}},
-				},
-			},
-		},
-	}
-
-	for k, v := range successCases {
-		if errs := ValidateEndpoints(&v); len(errs) != 0 {
-			t.Errorf("Expected success for %s, got %v", k, errs)
-		}
-	}
-
-	errorCases := map[string]struct {
-		endpoints   api.Endpoints
-		errorType   fielderrors.ValidationErrorType
-		errorDetail string
-	}{
-		"missing namespace": {
-			endpoints: api.Endpoints{ObjectMeta: api.ObjectMeta{Name: "mysvc"}},
-			errorType: "FieldValueRequired",
-		},
-		"missing name": {
-			endpoints: api.Endpoints{ObjectMeta: api.ObjectMeta{Namespace: "namespace"}},
-			errorType: "FieldValueRequired",
-		},
-		"invalid namespace": {
-			endpoints:   api.Endpoints{ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "no@#invalid.;chars\"allowed"}},
-			errorType:   "FieldValueInvalid",
-			errorDetail: dnsSubdomainErrorMsg,
-		},
-		"invalid name": {
-			endpoints:   api.Endpoints{ObjectMeta: api.ObjectMeta{Name: "-_Invliad^&Characters", Namespace: "namespace"}},
-			errorType:   "FieldValueInvalid",
-			errorDetail: dnsSubdomainErrorMsg,
-		},
-		"empty addresses": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Ports: []api.EndpointPort{{Name: "a", Port: 93, Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType: "FieldValueRequired",
-		},
-		"empty ports": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.3.3"}},
-					},
-				},
-			},
-			errorType: "FieldValueRequired",
-		},
-		"invalid IP": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "2001:0db8:85a3:0042:1000:8a2e:0370:7334"}},
-						Ports:     []api.EndpointPort{{Name: "a", Port: 93, Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType:   "FieldValueInvalid",
-			errorDetail: "invalid IPv4 address",
-		},
-		"Multiple ports, one without name": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-						Ports:     []api.EndpointPort{{Port: 8675, Protocol: "TCP"}, {Name: "b", Port: 309, Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType: "FieldValueRequired",
-		},
-		"Invalid port number": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-						Ports:     []api.EndpointPort{{Name: "a", Port: 66000, Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType:   "FieldValueInvalid",
-			errorDetail: portRangeErrorMsg,
-		},
-		"Invalid protocol": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-						Ports:     []api.EndpointPort{{Name: "a", Port: 93, Protocol: "Protocol"}},
-					},
-				},
-			},
-			errorType: "FieldValueNotSupported",
-		},
-		"Address missing IP": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{}},
-						Ports:     []api.EndpointPort{{Name: "a", Port: 93, Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType:   "FieldValueInvalid",
-			errorDetail: "invalid IPv4 address",
-		},
-		"Port missing number": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-						Ports:     []api.EndpointPort{{Name: "a", Protocol: "TCP"}},
-					},
-				},
-			},
-			errorType:   "FieldValueInvalid",
-			errorDetail: portRangeErrorMsg,
-		},
-		"Port missing protocol": {
-			endpoints: api.Endpoints{
-				ObjectMeta: api.ObjectMeta{Name: "mysvc", Namespace: "namespace"},
-				Subsets: []api.EndpointSubset{
-					{
-						Addresses: []api.EndpointAddress{{IP: "10.10.1.1"}},
-						Ports:     []api.EndpointPort{{Name: "a", Port: 93}},
-					},
-				},
-			},
-			errorType: "FieldValueRequired",
-		},
-	}
-
-	for k, v := range errorCases {
-		if errs := ValidateEndpoints(&v.endpoints); len(errs) == 0 || errs[0].(*errors.ValidationError).Type != v.errorType || errs[0].(*errors.ValidationError).Detail != v.errorDetail {
-			t.Errorf("Expected error type %s with detail %s for %s, got %v", v.errorType, v.errorDetail, k, errs)
-		}
-	}
+	// TODO: implement this
 }

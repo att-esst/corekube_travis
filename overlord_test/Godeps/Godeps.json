@@ -1,6 +1,9 @@
 {
 	"ImportPath": "github.com/metral/corekube_travis/overlord_test",
 	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
 	"Deps": [
 		{
 			"ImportPath": "code.google.com/p/go-uuid/uuid",
@@ -9,63 +12,58 @@
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/api",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/auth/user",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/conversion",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/fields",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/labels",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/runtime",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/types",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/util",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/third_party/forked/reflect",
-			"Comment": "v0.15.0-16-ga0fa592",
-			"Rev": "a0fa592b8051ca9fa251547a0adfa9c15fd4d707"
+			"Comment": "v0.14.2",
+			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/log",
-			"Comment": "v0.3.2-1095-gec5699e",
-			"Rev": "ec5699e8b82afa1f94e932b52ebf4ec4f809bed8"
+			"Comment": "v0.9.1",
+			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/pkg",
-			"Comment": "v0.3.2-1095-gec5699e",
-			"Rev": "ec5699e8b82afa1f94e932b52ebf4ec4f809bed8"
+			"Comment": "v0.9.1",
+			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/unit",
-			"Comment": "v0.3.2-1095-gec5699e",
-			"Rev": "ec5699e8b82afa1f94e932b52ebf4ec4f809bed8"
+			"Comment": "v0.9.1",
+			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-systemd/unit",
@@ -102,8 +100,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-24-g2a166eb",
-			"Rev": "2a166ebf8dba0368d672187c0fd0d3ba9bee5586"
+			"Comment": "v0.0.1-26-g881f583",
+			"Rev": "881f5836adb7f69f685b22e737edac5564bc1184"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",

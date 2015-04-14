@@ -1,3 +1,5 @@
+// +build windows
+
 /*
 Copyright 2014 Google Inc. All rights reserved.
 
@@ -14,32 +16,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package mount
 
 import (
-	"time"
+	"fmt"
 )
 
-// Clock allows for injecting fake or real clocks into code that
-// needs to do arbitrary things based on time.
-type Clock interface {
-	Now() time.Time
-}
-
-// RealClock really calls time.Now()
-type RealClock struct{}
-
-// Now returns the current time.
-func (r RealClock) Now() time.Time {
-	return time.Now()
-}
-
-// FakeClock implements Clock, but returns an arbitary time.
-type FakeClock struct {
-	Time time.Time
-}
-
-// Now returns f's time.
-func (f *FakeClock) Now() time.Time {
-	return f.Time
+// Dummy implementation for Windows
+func IsMountPoint(file string) (bool, error) {
+	return false, fmt.Errorf("unimplemented")
 }

@@ -14,19 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package util
+package types
 
-import (
-	"hash"
+import "fmt"
 
-	"github.com/davecgh/go-spew/spew"
-)
-
-// DeepHashObject writes specified object to hash using the spew library
-// which follows pointers and prints actual values of the nested objects
-// ensuring the hash does not change when a pointer changes.
-func DeepHashObject(hasher hash.Hash, objectToWrite interface{}) {
-	hasher.Reset()
-	printer := spew.ConfigState{Indent: " ", SortKeys: true}
-	printer.Fprintf(hasher, "%#v", objectToWrite)
+func NewNamespacedNameOrDie(namespace, name string) (ret NamespacedName) {
+	if len(namespace) == 0 || len(name) == 0 {
+		panic(fmt.Sprintf("invalid call to NewNamespacedNameOrDie(%q, %q)", namespace, name))
+	}
+	return NamespacedName{namespace, name}
 }

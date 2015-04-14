@@ -40,13 +40,13 @@ func TestGetReference(t *testing.T) {
 					Name:            "foo",
 					UID:             "bar",
 					ResourceVersion: "42",
-					SelfLink:        "/api/version1/pods/foo",
+					SelfLink:        "/api/v1beta1/pods/foo",
 				},
 			},
 			fieldPath: ".desiredState.containers[0]",
 			ref: &ObjectReference{
 				Kind:            "Pod",
-				APIVersion:      "version1",
+				APIVersion:      "v1beta1",
 				Name:            "foo",
 				UID:             "bar",
 				ResourceVersion: "42",
@@ -57,12 +57,12 @@ func TestGetReference(t *testing.T) {
 			obj: &ServiceList{
 				ListMeta: ListMeta{
 					ResourceVersion: "42",
-					SelfLink:        "/api/version2/services",
+					SelfLink:        "/api/v1beta2/services",
 				},
 			},
 			ref: &ObjectReference{
 				Kind:            "ServiceList",
-				APIVersion:      "version2",
+				APIVersion:      "v1beta2",
 				ResourceVersion: "42",
 			},
 		},
@@ -70,7 +70,7 @@ func TestGetReference(t *testing.T) {
 			obj: &ServiceList{
 				ListMeta: ListMeta{
 					ResourceVersion: "42",
-					SelfLink:        "version2/services",
+					SelfLink:        "v1beta2/services",
 				},
 			},
 			shouldErr: true,

@@ -25,21 +25,6 @@ import (
 
 func init() {
 	api.Scheme.AddDefaultingFuncs(
-		func(obj *ReplicationController) {
-			var labels map[string]string
-			if obj.Spec.Template != nil {
-				labels = obj.Spec.Template.Labels
-			}
-			// TODO: support templates defined elsewhere when we support them in the API
-			if labels != nil {
-				if len(obj.Spec.Selector) == 0 {
-					obj.Spec.Selector = labels
-				}
-				if len(obj.Labels) == 0 {
-					obj.Labels = labels
-				}
-			}
-		},
 		func(obj *Volume) {
 			if util.AllPtrFieldsNil(&obj.VolumeSource) {
 				obj.VolumeSource = VolumeSource{
@@ -67,18 +52,12 @@ func init() {
 				obj.TerminationMessagePath = TerminationMessagePathDefault
 			}
 		},
-		func(obj *ServiceSpec) {
-			if obj.SessionAffinity == "" {
-				obj.SessionAffinity = AffinityTypeNone
+		func(obj *Service) {
+			if obj.Spec.Protocol == "" {
+				obj.Spec.Protocol = ProtocolTCP
 			}
-			for i := range obj.Ports {
-				sp := &obj.Ports[i]
-				if sp.Protocol == "" {
-					sp.Protocol = ProtocolTCP
-				}
-				if sp.TargetPort == util.NewIntOrStringFromInt(0) || sp.TargetPort == util.NewIntOrStringFromString("") {
-					sp.TargetPort = util.NewIntOrStringFromInt(sp.Port)
-				}
+			if obj.Spec.SessionAffinity == "" {
+				obj.Spec.SessionAffinity = AffinityTypeNone
 			}
 		},
 		func(obj *PodSpec) {
@@ -116,6 +95,12 @@ func init() {
 		func(obj *HTTPGetAction) {
 			if obj.Path == "" {
 				obj.Path = "/"
+			}
+		},
+		func(obj *ServiceSpec) {
+			if obj.TargetPort.Kind == util.IntstrInt && obj.TargetPort.IntVal == 0 ||
+				obj.TargetPort.Kind == util.IntstrString && obj.TargetPort.StrVal == "" {
+				obj.TargetPort = util.NewIntOrStringFromInt(obj.Port)
 			}
 		},
 		func(obj *NamespaceStatus) {
