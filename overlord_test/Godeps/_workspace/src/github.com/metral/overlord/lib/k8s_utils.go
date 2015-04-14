@@ -11,10 +11,10 @@ import (
 )
 
 type PreregisteredKNode struct {
-	Kind       string             `json:"kind,omitempty"`
-	Id         string             `json:"id,omitempty"`
-	Status     v1beta3.NodeStatus `json:"status,omitempty"`
-	APIVersion string             `json:"apiVersion,omitempty"`
+	Kind       string                 `json:"kind,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	Status     v1beta3.NodeStatus     `json:"status,omitempty"`
+	APIVersion string                 `json:"apiVersion,omitempty"`
 }
 
 type KNodesResult struct {
@@ -113,13 +113,13 @@ func register(endpoint, addr string) error {
 
 	m := &PreregisteredKNode{
 		Kind:       "Node",
-		Id:         addr,
+		Metadata:   map[string]interface{}{"name": addr},
 		Status:     status,
 		APIVersion: Conf.KubernetesAPIVersion,
 	}
 	data, err := json.Marshal(m)
 	goutils.PrintErrors(
-		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
+		goutils.ErrorParams{Err: err, CallerNum: 1, Fatal: false})
 
 	url := fmt.Sprintf("%s/api/%s/nodes", endpoint, Conf.KubernetesAPIVersion)
 
@@ -134,16 +134,15 @@ func register(endpoint, addr string) error {
 		Headers:         headers,
 	}
 
-	statusCode, _, _ := goutils.HttpCreateRequest(p)
-	//statusCode, body, err := goutils.HttpCreateRequest(p)
-	//log.Printf("%d\n%s\n%v", statusCode, body, err)
+	statusCode, body, err := goutils.HttpCreateRequest(p)
 
 	switch statusCode {
 	case 200, 201, 202:
 		log.Printf("Registered node with the Kubernetes master: %s\n", addr)
 		return nil
-	case 409:
-		return nil
 	}
+	log.Printf("%d\n%s", statusCode, body)
+	goutils.PrintErrors(
+		goutils.ErrorParams{Err: err, CallerNum: 1, Fatal: false})
 	return nil
 }
