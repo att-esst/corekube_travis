@@ -3,7 +3,6 @@ package users
 import (
 	"errors"
 
-	"github.com/racker/perigee"
 	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/pagination"
 )
@@ -91,11 +90,8 @@ func Create(client *gophercloud.ServiceClient, opts CreateOptsBuilder) CreateRes
 		return res
 	}
 
-	_, res.Err = perigee.Request("POST", rootURL(client), perigee.Options{
-		Results:     &res.Body,
-		ReqBody:     reqBody,
-		MoreHeaders: client.AuthenticatedHeaders(),
-		OkCodes:     []int{200, 201},
+	_, res.Err = client.Post(rootURL(client), reqBody, &res.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200, 201},
 	})
 
 	return res
@@ -104,13 +100,7 @@ func Create(client *gophercloud.ServiceClient, opts CreateOptsBuilder) CreateRes
 // Get requests details on a single user, either by ID.
 func Get(client *gophercloud.ServiceClient, id string) GetResult {
 	var result GetResult
-
-	_, result.Err = perigee.Request("GET", ResourceURL(client, id), perigee.Options{
-		Results:     &result.Body,
-		MoreHeaders: client.AuthenticatedHeaders(),
-		OkCodes:     []int{200},
-	})
-
+	_, result.Err = client.Get(ResourceURL(client, id), &result.Body, nil)
 	return result
 }
 
@@ -148,26 +138,17 @@ func (opts UpdateOpts) ToUserUpdateMap() map[string]interface{} {
 // Update is the operation responsible for updating exist users by their UUID.
 func Update(client *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder) UpdateResult {
 	var result UpdateResult
-
-	_, result.Err = perigee.Request("PUT", ResourceURL(client, id), perigee.Options{
-		Results:     &result.Body,
-		ReqBody:     opts.ToUserUpdateMap(),
-		MoreHeaders: client.AuthenticatedHeaders(),
-		OkCodes:     []int{200},
+	reqBody := opts.ToUserUpdateMap()
+	_, result.Err = client.Put(ResourceURL(client, id), reqBody, &result.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200},
 	})
-
 	return result
 }
 
 // Delete is the operation responsible for permanently deleting an API user.
 func Delete(client *gophercloud.ServiceClient, id string) DeleteResult {
 	var result DeleteResult
-
-	_, result.Err = perigee.Request("DELETE", ResourceURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		OkCodes:     []int{204},
-	})
-
+	_, result.Err = client.Delete(ResourceURL(client, id), nil)
 	return result
 }
 

@@ -77,6 +77,28 @@ func TestGetServer(t *testing.T) {
 	th.CheckDeepEquals(t, &GophercloudServer, actual)
 }
 
+func TestUpdateServer(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+
+	th.Mux.HandleFunc("/servers/8c65cb68-0681-4c30-bc88-6b83a8a26aee", func(w http.ResponseWriter, r *http.Request) {
+		th.TestMethod(t, r, "PUT")
+		th.TestHeader(t, r, "X-Auth-Token", client.TokenID)
+		th.TestJSONRequest(t, r, `{ "server": { "name": "test-server-updated" } }`)
+
+		w.Header().Add("Content-Type", "application/json")
+
+		fmt.Fprintf(w, UpdateOutput)
+	})
+
+	opts := os.UpdateOpts{
+		Name: "test-server-updated",
+	}
+	actual, err := Update(client.ServiceClient(), "8c65cb68-0681-4c30-bc88-6b83a8a26aee", opts).Extract()
+	th.AssertNoErr(t, err)
+	th.CheckDeepEquals(t, &GophercloudUpdatedServer, actual)
+}
+
 func TestChangeAdminPassword(t *testing.T) {
 	th.SetupHTTP()
 	defer th.TeardownHTTP()
@@ -109,4 +131,52 @@ func TestRebuildServer(t *testing.T) {
 	actual, err := Rebuild(client.ServiceClient(), "1234asdf", opts).Extract()
 	th.AssertNoErr(t, err)
 	th.CheckDeepEquals(t, &GophercloudServer, actual)
+}
+
+func TestListAddresses(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+	os.HandleAddressListSuccessfully(t)
+
+	expected := os.ListAddressesExpected
+	pages := 0
+	err := ListAddresses(client.ServiceClient(), "asdfasdfasdf").EachPage(func(page pagination.Page) (bool, error) {
+		pages++
+
+		actual, err := ExtractAddresses(page)
+		th.AssertNoErr(t, err)
+
+		if len(actual) != 2 {
+			t.Fatalf("Expected 2 networks, got %d", len(actual))
+		}
+		th.CheckDeepEquals(t, expected, actual)
+
+		return true, nil
+	})
+	th.AssertNoErr(t, err)
+	th.CheckEquals(t, 1, pages)
+}
+
+func TestListAddressesByNetwork(t *testing.T) {
+	th.SetupHTTP()
+	defer th.TeardownHTTP()
+	os.HandleNetworkAddressListSuccessfully(t)
+
+	expected := os.ListNetworkAddressesExpected
+	pages := 0
+	err := ListAddressesByNetwork(client.ServiceClient(), "asdfasdfasdf", "public").EachPage(func(page pagination.Page) (bool, error) {
+		pages++
+
+		actual, err := ExtractNetworkAddresses(page)
+		th.AssertNoErr(t, err)
+
+		if len(actual) != 2 {
+			t.Fatalf("Expected 2 addresses, got %d", len(actual))
+		}
+		th.CheckDeepEquals(t, expected, actual)
+
+		return true, nil
+	})
+	th.AssertNoErr(t, err)
+	th.CheckEquals(t, 1, pages)
 }

@@ -1,9 +1,6 @@
 package tokens
 
-import (
-	"github.com/racker/perigee"
-	"github.com/rackspace/gophercloud"
-)
+import "github.com/rackspace/gophercloud"
 
 // AuthOptionsBuilder describes any argument that may be passed to the Create call.
 type AuthOptionsBuilder interface {
@@ -78,9 +75,7 @@ func Create(client *gophercloud.ServiceClient, auth AuthOptionsBuilder) CreateRe
 	}
 
 	var result CreateResult
-	_, result.Err = perigee.Request("POST", CreateURL(client), perigee.Options{
-		ReqBody: &request,
-		Results: &result.Body,
+	_, result.Err = client.Post(CreateURL(client), request, &result.Body, &gophercloud.RequestOpts{
 		OkCodes: []int{200, 203},
 	})
 	return result

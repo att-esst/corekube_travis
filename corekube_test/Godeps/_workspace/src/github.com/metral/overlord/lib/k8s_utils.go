@@ -6,61 +6,69 @@ import (
 	"log"
 	"time"
 
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/api/v1beta3"
 	"github.com/metral/goutils"
 )
 
-var K8S_API_VERSION string = "v1beta1"
-var K8S_API_PORT string = "8080"
-
-type PreregisteredMinion struct {
-	Kind       string `json:"kind,omitempty"`
-	ID         string `json:"id,omitempty"`
-	HostIP     string `json:"hostIP,omitempty"`
-	APIVersion string `json:"apiVersion,omitempty"`
+type PreregisteredKNode struct {
+	Kind       string                 `json:"kind,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
+	Status     v1beta3.NodeStatus     `json:"status,omitempty"`
+	APIVersion string                 `json:"apiVersion,omitempty"`
 }
 
-type MinionsResult struct {
-	Kind              string  `json:"kind,omitempty"`
-	CreationTimestamp string  `json:"creationTimestamp,omitempty"`
-	SelfLink          string  `json:"selfLink,omitempty"`
-	APIVersion        string  `json:"apiVersion,omitempty"`
-	Minions           Minions `json:"minions,omitempty"`
+type KNodesResult struct {
+	Kind              string `json:"kind,omitempty"`
+	CreationTimestamp string `json:"creationTimestamp,omitempty"`
+	SelfLink          string `json:"selfLink,omitempty"`
+	APIVersion        string `json:"apiVersion,omitempty"`
+	Nodes             KNodes `json:"nodes,omitempty"`
 }
 
-type Minions []Minion
-type Minion struct {
+type KNodesCountResult struct {
+	Kind              string `json:"kind,omitempty"`
+	CreationTimestamp string `json:"creationTimestamp,omitempty"`
+	SelfLink          string `json:"selfLink,omitempty"`
+	APIVersion        string `json:"apiVersion,omitempty"`
+	Items             KNodes `json:"items,omitempty"`
+}
+
+type KNodes []KNode
+type KNode struct {
 	ID                string `json:"id,omitempty"`
 	UID               string `json:"uid,omitempty"`
 	CreationTimestamp string `json:"creationTimestamp,omitempty"`
 	SelfLink          string `json:"selfLink,omitempty"`
 	ResourceVersion   int    `json:"resourceVersion,omitempty"`
 	HostIP            string `json:"hostIP,omitempty"`
-	resources         map[interface{}]interface{}
+	Resources         map[interface{}]interface{}
 }
 
-func isK8sMachine(
-	fleetMachine,
-	master *FleetMachine,
-	minions *FleetMachines) bool {
-
+func isMaster(fleetMachine *FleetMachine) bool {
 	role := fleetMachine.Metadata["kubernetes_role"]
 
 	switch role {
 	case "master":
-		*master = *fleetMachine
-		return true
-	case "minion":
-		*minions = append(*minions, *fleetMachine)
 		return true
 	}
 	return false
 }
 
-func registerMinions(master *FleetMachine, minions *FleetMachines) {
+func isMinion(fleetMachine *FleetMachine) bool {
+	role := fleetMachine.Metadata["kubernetes_role"]
 
-	// Get registered minions, if any
-	endpoint := fmt.Sprintf("http://%s:%s", master.PublicIP, K8S_API_PORT)
-	masterAPIurl := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
+	switch role {
+	case "minion":
+		return true
+	}
+	return false
+}
+
+func registerKNodes(master *FleetMachine, node *FleetMachine) {
+
+	// Get registered nodes, if any
+	endpoint := fmt.Sprintf("http://%s:%s", master.PublicIP, Conf.KubernetesAPIPort)
+	masterAPIurl := fmt.Sprintf("%s/api/%s/nodes", endpoint, Conf.KubernetesAPIVersion)
 
 	headers := map[string]string{
 		"Content-Type": "application/json",
@@ -72,41 +80,48 @@ func registerMinions(master *FleetMachine, minions *FleetMachines) {
 	}
 
 	_, jsonResponse, _ := goutils.HttpCreateRequest(p)
-	m := *minions
 
-	var minionsResult MinionsResult
-	err := json.Unmarshal(jsonResponse, &minionsResult)
+	var nodesResult KNodesResult
+	err := json.Unmarshal(jsonResponse, &nodesResult)
 	goutils.PrintErrors(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 
-	// See if minions discovered have been registered. If not, register
-	for _, minion := range m {
-		registered := false
-		for _, registeredMinion := range minionsResult.Minions {
-			if registeredMinion.HostIP == minion.PublicIP {
+	// See if nodes discovered have been registered. If not, register
+	registered := false
+	/*
+		for _, registeredKNode := range nodesResult.Nodes {
+			if registeredKNode.HostIP == node.PublicIP {
 				registered = true
 			}
 		}
+	*/
 
-		if !registered {
-			register(endpoint, minion.PublicIP)
-			time.Sleep(500 * time.Millisecond)
-		}
+	if !registered {
+		register(endpoint, node.PublicIP)
+		time.Sleep(500 * time.Millisecond)
 	}
 }
 
 func register(endpoint, addr string) error {
-	m := &PreregisteredMinion{
-		Kind:       "Minion",
-		APIVersion: K8S_API_VERSION,
-		ID:         addr,
-		HostIP:     addr,
+	status := v1beta3.NodeStatus{}
+	status.Addresses = []v1beta3.NodeAddress{
+		v1beta3.NodeAddress{
+			Address: addr,
+			Type:    v1beta3.NodeInternalIP,
+		},
+	}
+
+	m := &PreregisteredKNode{
+		Kind:       "Node",
+		Metadata:   map[string]interface{}{"name": addr},
+		Status:     status,
+		APIVersion: Conf.KubernetesAPIVersion,
 	}
 	data, err := json.Marshal(m)
 	goutils.PrintErrors(
-		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
+		goutils.ErrorParams{Err: err, CallerNum: 1, Fatal: false})
 
-	url := fmt.Sprintf("%s/api/%s/minions", endpoint, K8S_API_VERSION)
+	url := fmt.Sprintf("%s/api/%s/nodes", endpoint, Conf.KubernetesAPIVersion)
 
 	headers := map[string]string{
 		"Content-Type": "application/json",
@@ -118,15 +133,16 @@ func register(endpoint, addr string) error {
 		Data:            data,
 		Headers:         headers,
 	}
-	statusCode, _, _ := goutils.HttpCreateRequest(p)
+
+	statusCode, body, err := goutils.HttpCreateRequest(p)
 
 	switch statusCode {
-	case 200, 202:
-		log.Printf("------------------------------------------------")
-		log.Printf("Registered machine with the master: %s\n", addr)
-		return nil
-	case 409:
+	case 200, 201, 202:
+		log.Printf("Registered node with the Kubernetes master: %s\n", addr)
 		return nil
 	}
+	log.Printf("%d\n%s", statusCode, body)
+	goutils.PrintErrors(
+		goutils.ErrorParams{Err: err, CallerNum: 1, Fatal: false})
 	return nil
 }

@@ -2,6 +2,7 @@ package goutils
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 )
@@ -42,9 +43,12 @@ func HttpCreateRequest(p HttpRequestParams) (int, []byte, error) {
 		u, err := resp.Location()
 
 		if err != nil {
-			p.Url = u.String()
-			HttpCreateRequest(p)
+			return 0, nil,
+				fmt.Errorf("Location header not valid URL: %s", u.String())
 		}
+
+		p.Url = u.String()
+		HttpCreateRequest(p)
 	default:
 		statusCode = resp.StatusCode
 

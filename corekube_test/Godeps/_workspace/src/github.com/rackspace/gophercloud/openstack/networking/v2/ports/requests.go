@@ -3,8 +3,6 @@ package ports
 import (
 	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/pagination"
-
-	"github.com/racker/perigee"
 )
 
 // AdminState gives users a solid type to work with for create and update
@@ -81,11 +79,7 @@ func List(c *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 // Get retrieves a specific port based on its unique ID.
 func Get(c *gophercloud.ServiceClient, id string) GetResult {
 	var res GetResult
-	_, res.Err = perigee.Request("GET", getURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
-	})
+	_, res.Err = c.Get(getURL(c, id), &res.Body, nil)
 	return res
 }
 
@@ -158,14 +152,7 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) CreateResult {
 		return res
 	}
 
-	// Response
-	_, res.Err = perigee.Request("POST", createURL(c), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		Results:     &res.Body,
-		OkCodes:     []int{201},
-	})
-
+	_, res.Err = c.Post(createURL(c), reqBody, &res.Body, nil)
 	return res
 }
 
@@ -224,11 +211,8 @@ func Update(c *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder) Upd
 		return res
 	}
 
-	_, res.Err = perigee.Request("PUT", updateURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		Results:     &res.Body,
-		OkCodes:     []int{200, 201},
+	_, res.Err = c.Put(updateURL(c, id), reqBody, &res.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200, 201},
 	})
 	return res
 }
@@ -236,9 +220,6 @@ func Update(c *gophercloud.ServiceClient, id string, opts UpdateOptsBuilder) Upd
 // Delete accepts a unique ID and deletes the port associated with it.
 func Delete(c *gophercloud.ServiceClient, id string) DeleteResult {
 	var res DeleteResult
-	_, res.Err = perigee.Request("DELETE", deleteURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{204},
-	})
+	_, res.Err = c.Delete(deleteURL(c, id), nil)
 	return res
 }

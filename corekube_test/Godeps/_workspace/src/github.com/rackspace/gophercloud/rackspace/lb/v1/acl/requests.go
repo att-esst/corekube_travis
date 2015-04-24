@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/racker/perigee"
 	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/pagination"
 )
@@ -75,12 +74,7 @@ func Create(client *gophercloud.ServiceClient, loadBalancerID int, opts CreateOp
 		return res
 	}
 
-	_, res.Err = perigee.Request("POST", rootURL(client, loadBalancerID), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = client.Post(rootURL(client, loadBalancerID), reqBody, nil, nil)
 	return res
 }
 
@@ -97,21 +91,14 @@ func BulkDelete(c *gophercloud.ServiceClient, loadBalancerID int, itemIDs []int)
 	url := rootURL(c, loadBalancerID)
 	url += gophercloud.IDSliceToQueryString("id", itemIDs)
 
-	_, res.Err = perigee.Request("DELETE", url, perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Delete(url, nil)
 	return res
 }
 
 // Delete will remove a single network item from a load balancer's access list.
 func Delete(c *gophercloud.ServiceClient, lbID, itemID int) DeleteResult {
 	var res DeleteResult
-	_, res.Err = perigee.Request("DELETE", resourceURL(c, lbID, itemID), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
+	_, res.Err = c.Delete(resourceURL(c, lbID, itemID), nil)
 	return res
 }
 
@@ -119,9 +106,6 @@ func Delete(c *gophercloud.ServiceClient, lbID, itemID int) DeleteResult {
 // effectively resetting it and allowing all traffic.
 func DeleteAll(c *gophercloud.ServiceClient, lbID int) DeleteResult {
 	var res DeleteResult
-	_, res.Err = perigee.Request("DELETE", rootURL(c, lbID), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
+	_, res.Err = c.Delete(rootURL(c, lbID), nil)
 	return res
 }

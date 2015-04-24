@@ -3,8 +3,6 @@ package monitors
 import (
 	"errors"
 
-	"github.com/racker/perigee"
-
 	"github.com/rackspace/gophercloud"
 )
 
@@ -143,36 +141,20 @@ func Update(c *gophercloud.ServiceClient, id int, opts UpdateOptsBuilder) Update
 		return res
 	}
 
-	_, res.Err = perigee.Request("PUT", rootURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Put(rootURL(c, id), reqBody, nil, nil)
 	return res
 }
 
 // Get is the operation responsible for showing details of a health monitor.
 func Get(c *gophercloud.ServiceClient, id int) GetResult {
 	var res GetResult
-
-	_, res.Err = perigee.Request("GET", rootURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
-	})
-
+	_, res.Err = c.Get(rootURL(c, id), &res.Body, nil)
 	return res
 }
 
 // Delete is the operation responsible for deleting a health monitor.
 func Delete(c *gophercloud.ServiceClient, id int) DeleteResult {
 	var res DeleteResult
-
-	_, res.Err = perigee.Request("DELETE", rootURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Delete(rootURL(c, id), nil)
 	return res
 }

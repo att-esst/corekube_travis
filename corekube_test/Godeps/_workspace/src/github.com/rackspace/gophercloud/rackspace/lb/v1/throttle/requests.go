@@ -3,8 +3,6 @@ package throttle
 import (
 	"errors"
 
-	"github.com/racker/perigee"
-
 	"github.com/rackspace/gophercloud"
 )
 
@@ -57,13 +55,7 @@ func Create(c *gophercloud.ServiceClient, lbID int, opts CreateOptsBuilder) Crea
 		return res
 	}
 
-	_, res.Err = perigee.Request("PUT", rootURL(c, lbID), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		Results:     &res.Body,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Put(rootURL(c, lbID), reqBody, &res.Body, nil)
 	return res
 }
 
@@ -71,13 +63,7 @@ func Create(c *gophercloud.ServiceClient, lbID int, opts CreateOptsBuilder) Crea
 // throttling configuration for a load balancer.
 func Get(c *gophercloud.ServiceClient, lbID int) GetResult {
 	var res GetResult
-
-	_, res.Err = perigee.Request("GET", rootURL(c, lbID), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
-	})
-
+	_, res.Err = c.Get(rootURL(c, lbID), &res.Body, nil)
 	return res
 }
 
@@ -85,11 +71,6 @@ func Get(c *gophercloud.ServiceClient, lbID int) GetResult {
 // configuration for a load balancer.
 func Delete(c *gophercloud.ServiceClient, lbID int) DeleteResult {
 	var res DeleteResult
-
-	_, res.Err = perigee.Request("DELETE", rootURL(c, lbID), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Delete(rootURL(c, lbID), nil)
 	return res
 }

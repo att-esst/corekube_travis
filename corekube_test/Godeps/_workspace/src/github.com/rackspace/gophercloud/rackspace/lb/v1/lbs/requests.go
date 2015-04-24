@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/racker/perigee"
 
 	"github.com/rackspace/gophercloud"
 	"github.com/rackspace/gophercloud/pagination"
@@ -228,13 +227,7 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) CreateResult {
 		return res
 	}
 
-	_, res.Err = perigee.Request("POST", rootURL(c), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		Results:     &res.Body,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Post(rootURL(c), reqBody, &res.Body, nil)
 	return res
 }
 
@@ -245,10 +238,8 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) CreateResult {
 func Get(c *gophercloud.ServiceClient, id int) GetResult {
 	var res GetResult
 
-	_, res.Err = perigee.Request("GET", resourceURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
+	_, res.Err = c.Get(resourceURL(c, id), &res.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200},
 	})
 
 	return res
@@ -272,23 +263,14 @@ func BulkDelete(c *gophercloud.ServiceClient, ids []int) DeleteResult {
 	url := rootURL(c)
 	url += gophercloud.IDSliceToQueryString("id", ids)
 
-	_, res.Err = perigee.Request("DELETE", url, perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Delete(url, nil)
 	return res
 }
 
 // Delete removes a single load balancer.
 func Delete(c *gophercloud.ServiceClient, id int) DeleteResult {
 	var res DeleteResult
-
-	_, res.Err = perigee.Request("DELETE", resourceURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Delete(resourceURL(c, id), nil)
 	return res
 }
 
@@ -368,12 +350,7 @@ func Update(c *gophercloud.ServiceClient, id int, opts UpdateOptsBuilder) Update
 		return res
 	}
 
-	_, res.Err = perigee.Request("PUT", resourceURL(c, id), perigee.Options{
-		MoreHeaders: c.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = c.Put(resourceURL(c, id), reqBody, nil, nil)
 	return res
 }
 
@@ -400,11 +377,7 @@ func ListAlgorithms(client *gophercloud.ServiceClient) pagination.Pager {
 func IsLoggingEnabled(client *gophercloud.ServiceClient, id int) (bool, error) {
 	var body interface{}
 
-	_, err := perigee.Request("GET", loggingURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		Results:     &body,
-		OkCodes:     []int{200},
-	})
+	_, err := client.Get(loggingURL(client, id), &body, nil)
 	if err != nil {
 		return false, err
 	}
@@ -427,42 +400,22 @@ func toConnLoggingMap(state bool) map[string]map[string]bool {
 
 // EnableLogging will enable connection logging for a specified load balancer.
 func EnableLogging(client *gophercloud.ServiceClient, id int) gophercloud.ErrResult {
-	reqBody := toConnLoggingMap(true)
 	var res gophercloud.ErrResult
-
-	_, res.Err = perigee.Request("PUT", loggingURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = client.Put(loggingURL(client, id), toConnLoggingMap(true), nil, nil)
 	return res
 }
 
 // DisableLogging will disable connection logging for a specified load balancer.
 func DisableLogging(client *gophercloud.ServiceClient, id int) gophercloud.ErrResult {
-	reqBody := toConnLoggingMap(false)
 	var res gophercloud.ErrResult
-
-	_, res.Err = perigee.Request("PUT", loggingURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = client.Put(loggingURL(client, id), toConnLoggingMap(false), nil, nil)
 	return res
 }
 
 // GetErrorPage will retrieve the current error page for the load balancer.
 func GetErrorPage(client *gophercloud.ServiceClient, id int) ErrorPageResult {
 	var res ErrorPageResult
-
-	_, res.Err = perigee.Request("GET", errorPageURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
-	})
-
+	_, res.Err = client.Get(errorPageURL(client, id), &res.Body, nil)
 	return res
 }
 
@@ -474,11 +427,8 @@ func SetErrorPage(client *gophercloud.ServiceClient, id int, html string) ErrorP
 	type stringMap map[string]string
 	reqBody := map[string]stringMap{"errorpage": stringMap{"content": html}}
 
-	_, res.Err = perigee.Request("PUT", errorPageURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		ReqBody:     &reqBody,
-		OkCodes:     []int{200},
+	_, res.Err = client.Put(errorPageURL(client, id), reqBody, &res.Body, &gophercloud.RequestOpts{
+		OkCodes: []int{200},
 	})
 
 	return res
@@ -487,25 +437,16 @@ func SetErrorPage(client *gophercloud.ServiceClient, id int, html string) ErrorP
 // DeleteErrorPage will delete the current error page for the load balancer.
 func DeleteErrorPage(client *gophercloud.ServiceClient, id int) gophercloud.ErrResult {
 	var res gophercloud.ErrResult
-
-	_, res.Err = perigee.Request("DELETE", errorPageURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		OkCodes:     []int{200},
+	_, res.Err = client.Delete(errorPageURL(client, id), &gophercloud.RequestOpts{
+		OkCodes: []int{200},
 	})
-
 	return res
 }
 
 // GetStats will retrieve detailed stats related to the load balancer's usage.
 func GetStats(client *gophercloud.ServiceClient, id int) StatsResult {
 	var res StatsResult
-
-	_, res.Err = perigee.Request("GET", statsURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		Results:     &res.Body,
-		OkCodes:     []int{200},
-	})
-
+	_, res.Err = client.Get(statsURL(client, id), &res.Body, nil)
 	return res
 }
 
@@ -520,11 +461,7 @@ func GetStats(client *gophercloud.ServiceClient, id int) StatsResult {
 func IsContentCached(client *gophercloud.ServiceClient, id int) (bool, error) {
 	var body interface{}
 
-	_, err := perigee.Request("GET", cacheURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		Results:     &body,
-		OkCodes:     []int{200},
-	})
+	_, err := client.Get(cacheURL(client, id), &body, nil)
 	if err != nil {
 		return false, err
 	}
@@ -547,28 +484,14 @@ func toCachingMap(state bool) map[string]map[string]bool {
 
 // EnableCaching will enable content-caching for the specified load balancer.
 func EnableCaching(client *gophercloud.ServiceClient, id int) gophercloud.ErrResult {
-	reqBody := toCachingMap(true)
 	var res gophercloud.ErrResult
-
-	_, res.Err = perigee.Request("PUT", cacheURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = client.Put(cacheURL(client, id), toCachingMap(true), nil, nil)
 	return res
 }
 
 // DisableCaching will disable content-caching for the specified load balancer.
 func DisableCaching(client *gophercloud.ServiceClient, id int) gophercloud.ErrResult {
-	reqBody := toCachingMap(false)
 	var res gophercloud.ErrResult
-
-	_, res.Err = perigee.Request("PUT", cacheURL(client, id), perigee.Options{
-		MoreHeaders: client.AuthenticatedHeaders(),
-		ReqBody:     &reqBody,
-		OkCodes:     []int{202},
-	})
-
+	_, res.Err = client.Put(cacheURL(client, id), toCachingMap(false), nil, nil)
 	return res
 }
