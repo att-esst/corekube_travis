@@ -27,7 +27,7 @@
 		},
 		{
 			"ImportPath": "github.com/metral/goheat",
-			"Rev": "b620ee2c897c939014f72bdb6631b3f73d960fc4"
+			"Rev": "ed1b7663f2b2b92e31315a69e02ebd255ef206aa"
 		},
 		{
 			"ImportPath": "github.com/metral/goutils",
