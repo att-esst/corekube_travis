@@ -35,9 +35,9 @@ func overlayNetworksCountTest(
 
 		var overlayResult lib.Result
 		path := fmt.Sprintf("%s/keys/coreos.com/network/subnets",
-			lib.ETCD_API_VERSION)
+			lib.Conf.EtcdAPIVersion)
 		url := fmt.Sprintf("http://%s:%s/%s",
-			overlordIP, lib.ETCD_CLIENT_PORT, path)
+			overlordIP, lib.Conf.EtcdClientPort, path)
 
 		token := rax.IdentitySetup(config)
 
