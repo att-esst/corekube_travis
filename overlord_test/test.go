@@ -58,7 +58,7 @@ func nodeK8sCountTest(
 
 		masterIP := util.ExtractArrayIPs(d, "master_ips")
 		expectedNodeCount, _ := strconv.Atoi(
-			d.Stack.Parameters["kubernetes-minion-count"].(string))
+			d.Stack.Parameters["kubernetes_minion_count"].(string))
 
 		var nodesResult lib.KNodesCountResult
 		endpoint := fmt.Sprintf("http://%s:%s", masterIP[0], lib.Conf.KubernetesAPIPort)
@@ -101,7 +101,7 @@ func runTests(config *util.HeatConfig, details *util.StackDetails) {
 
 func main() {
 	params := map[string]string{
-		"git-command": createGitCmdParam(),
+		"git_command": createGitCmdParam(),
 	}
 	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
