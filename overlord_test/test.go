@@ -56,7 +56,7 @@ func nodeK8sCountTest(
 	for {
 		msg = "nodeK8sCountTest: "
 
-		masterIP := util.ExtractArrayIPs(d, "master_ips")
+		masterIP := util.ExtractIPFromStackDetails(d, "master_ip")
 		expectedNodeCount, _ := strconv.Atoi(
 			d.Stack.Parameters["kubernetes_minion_count"].(string))
 

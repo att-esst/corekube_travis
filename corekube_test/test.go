@@ -26,7 +26,7 @@ func overlayNetworksCountTest(
 	for {
 		msg = "overlayNetworksCountTest: "
 
-		overlordIP := util.ExtractOverlordIP(d)
+		overlordIP := util.ExtractIPFromStackDetails(d, "overlord_ip")
 		masterCount := 1
 		minionCount, _ := strconv.Atoi(
 			d.Stack.Parameters["kubernetes_minion_count"].(string))
