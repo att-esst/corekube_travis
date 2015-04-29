@@ -100,8 +100,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-34-g161ce8a",
-			"Rev": "161ce8a8cc006f76d92c4d742883e1fcc8b2f990"
+			"Comment": "v0.0.1-37-ge06c556",
+			"Rev": "e06c55626440b91d447fffc28e811b8f719bf0f8"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",

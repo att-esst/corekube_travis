@@ -108,7 +108,6 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	controller := string(readfile)
 	controller = strings.Replace(controller, "<ID>", fleetMachine.ID, -1)
-	controller = strings.Replace(controller, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write controller service file
 	filename = strings.Replace(files["controller"], "@", "@"+fleetMachine.ID, -1)
@@ -125,7 +124,6 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	scheduler := string(readfile)
 	scheduler = strings.Replace(scheduler, "<ID>", fleetMachine.ID, -1)
-	scheduler = strings.Replace(scheduler, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write scheduler service file
 	filename = strings.Replace(files["scheduler"], "@", "@"+fleetMachine.ID, -1)
@@ -197,7 +195,6 @@ func createMinionUnits(masterFleetMachine,
 	proxy := string(readfile)
 	proxy = strings.Replace(proxy, "<ID>", fleetMachine.ID, -1)
 	proxy = strings.Replace(proxy, "<MASTER_IP_PORT>", masterIPPort, -1)
-	proxy = strings.Replace(proxy, "<K8S_API_VERSION>", Conf.KubernetesAPIVersion, -1)
 
 	// Write proxy service file
 	filename = strings.Replace(files["proxy"], "@", "@"+fleetMachine.ID, -1)
