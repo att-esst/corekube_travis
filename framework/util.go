@@ -1,4 +1,4 @@
-package corekube_travis
+package framework
 
 import (
 	"flag"
@@ -20,7 +20,11 @@ var (
 	timeout      = flag.Int("timeout", 10, "Heat stack create timeout")
 )
 
-func StartTestTimeout(timeout int, config *util.HeatConfig, details *util.StackDetails, f func(*util.HeatConfig, *util.StackDetails) string) {
+func StartTestTimeout(timeout int,
+	config *util.HeatConfig,
+	details *util.StackDetails,
+	f func(*util.HeatConfig, *util.StackDetails) string) {
+
 	chan1 := make(chan string, 1)
 	go func() {
 		result := f(config, details)

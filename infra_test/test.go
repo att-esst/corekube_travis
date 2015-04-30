@@ -8,7 +8,7 @@ import (
 
 	"time"
 
-	"github.com/metral/corekube_travis"
+	"github.com/metral/corekube_travis/framework"
 	"github.com/metral/goheat"
 	"github.com/metral/goheat/rax"
 	"github.com/metral/goheat/util"
@@ -75,12 +75,12 @@ func overlayNetworksCountTest(
 }
 
 func runTests(config *util.HeatConfig, details *util.StackDetails) {
-	corekube_travis.StartTestTimeout(10, config, details, overlayNetworksCountTest)
+	framework.StartTestTimeout(10, config, details, overlayNetworksCountTest)
 }
 
 func main() {
 	params := map[string]string{}
-	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
+	config, stackDetails := framework.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
 	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
 }

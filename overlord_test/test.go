@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/metral/corekube_travis"
+	"github.com/metral/corekube_travis/framework"
 	"github.com/metral/goheat"
 	"github.com/metral/goheat/util"
 	"github.com/metral/goutils"
@@ -96,7 +96,7 @@ func nodeK8sCountTest(
 }
 
 func runTests(config *util.HeatConfig, details *util.StackDetails) {
-	corekube_travis.StartTestTimeout(10, config, details, nodeK8sCountTest)
+	framework.StartTestTimeout(10, config, details, nodeK8sCountTest)
 }
 
 func main() {
@@ -107,7 +107,7 @@ func main() {
 	log.Printf("%s", params)
 	log.Printf("========================================")
 
-	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
+	config, stackDetails := framework.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
 	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
 }
