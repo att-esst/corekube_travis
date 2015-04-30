@@ -103,6 +103,10 @@ func main() {
 	params := map[string]string{
 		"git_command": createGitCmdParam(),
 	}
+	log.Printf("========================================")
+	log.Printf("%s", params)
+	log.Printf("========================================")
+
 	config, stackDetails := corekube_travis.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
 	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
