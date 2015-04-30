@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/metral/corekube_travis/corekube_test",
+	"ImportPath": "github.com/metral/corekube_travis/infra_test",
 	"GoVersion": "go1.4",
 	"Packages": [
 		"./..."
