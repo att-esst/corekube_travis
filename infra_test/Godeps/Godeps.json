@@ -92,7 +92,7 @@
 		},
 		{
 			"ImportPath": "github.com/metral/goheat",
-			"Rev": "07fee478f7cd44aadccc7e0fc21d7d8c14d0de57"
+			"Rev": "b410a7e9977211bfbc202d2696b1a7c4c78c75f8"
 		},
 		{
 			"ImportPath": "github.com/metral/goutils",
@@ -100,8 +100,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-38-g969aa96",
-			"Rev": "969aa96cabc34d13e9a2dba1e70fb9cbef426ce9"
+			"Comment": "v0.0.1-39-g8646b90",
+			"Rev": "8646b907b45418772db0c5f45009f7cf7725e151"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",

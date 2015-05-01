@@ -1,0 +1,22 @@
+{
+	"ImportPath": "github.com/metral/goheat",
+	"GoVersion": "go1.4",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/metral/goutils",
+			"Rev": "fa5e6f0c2d0593913c1d2e512af121c2cd27a0a6"
+		},
+		{
+			"ImportPath": "github.com/mitchellh/mapstructure",
+			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+		},
+		{
+			"ImportPath": "github.com/rackspace/gophercloud",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
+		}
+	]
+}
