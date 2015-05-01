@@ -7,7 +7,7 @@ TEMPLATE=$3
 docker rm -f $RUN_TEST
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-result=`docker build --rm -t $RUN_TEST -f $DIR/$RUN_TEST/Dockerfile .`
+result=`docker build --no-cache --rm -t $RUN_TEST -f $DIR/$RUN_TEST/Dockerfile .`
 echo "$result"
 
 echo ""
