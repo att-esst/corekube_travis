@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	templateFile = flag.String("templateFile", "", "Path of corekube-heat.yaml")
+	templateFile = flag.String("templateFile", "", "Path of corekube Heat template")
 	keypair      = flag.String("keypair", "", "Existing SSH keypair")
 	authUrl      = flag.String("authUrl", "", "Openstack Auth URL")
 	username     = flag.String("username", "", "Openstack Username")

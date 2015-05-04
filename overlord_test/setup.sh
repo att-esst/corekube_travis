@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Clone "metral/corekube" just to have access to latest corekube-heat.yaml Heat
+# Clone "metral/corekube" just to have access to latest corekube Heat
 # template. The tests in "metral/corekube_travis" below use the template to
 # deploy a new cluster by overwriting the template's git-command parameter
 # to clone overlord and switch to either the PR or commit in the TravisCI
@@ -9,7 +9,7 @@
 # parameter.
 git clone https://github.com/metral/corekube $HOME/corekube
 pushd $HOME/corekube
-cp corekube-heat.yaml /tmp/template.yaml
+cp corekube-cloudservers.yaml /tmp/template.yaml
 echo "========================================"
 echo "corekube commit: `git rev-parse --short HEAD`"
 echo "========================================"
