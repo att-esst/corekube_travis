@@ -95,7 +95,7 @@ func createStackReq(
 
 	timeout := int(10)
 	params := map[string]string{
-		"key_name": keypair,
+		"keyname": keypair,
 	}
 
 	if len(*extraParams) > 0 {
