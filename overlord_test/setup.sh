@@ -26,4 +26,3 @@ godep get ./...
 # piece together the etcd api & client port
 mkdir -p /tmp/
 cp $GOPATH/src/github.com/metral/overlord/conf.json /tmp/
-
