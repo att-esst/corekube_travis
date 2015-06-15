@@ -9,7 +9,7 @@
 # parameter.
 git clone https://github.com/metral/corekube $HOME/corekube
 pushd $HOME/corekube
-cp corekube-cloudservers.yaml /tmp/template.yaml
+cp corekube-cloudservers.yaml /tmp/corekube-cloudservers.yaml
 echo "========================================"
 echo "corekube commit: `git rev-parse --short HEAD`"
 echo "========================================"
