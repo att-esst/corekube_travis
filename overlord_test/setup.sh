@@ -9,7 +9,7 @@
 # parameter.
 git clone https://github.com/metral/corekube $HOME/corekube
 pushd $HOME/corekube
-cp corekube-cloudservers.yaml /tmp/corekube-cloudservers.yaml
+cp corekube-cloudservers.yaml /tmp/
 echo "========================================"
 echo "corekube commit: `git rev-parse --short HEAD`"
 echo "========================================"
@@ -24,5 +24,4 @@ godep get ./...
 # Copy conf.json from overlord in godeps to
 # /tmp where overlord's lib expects it - we use lib in the infra_test to
 # piece together the etcd api & client port
-mkdir -p /tmp/
 cp $GOPATH/src/github.com/metral/overlord/conf.json /tmp/
