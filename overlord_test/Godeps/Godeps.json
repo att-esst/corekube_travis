@@ -51,6 +51,11 @@
 			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
+			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/third_party/forked/reflect",
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
+		},
+		{
 			"ImportPath": "github.com/coreos/fleet/log",
 			"Comment": "v0.10.1",
 			"Rev": "dc1d8e82dc07151297d8a2396dcf52e703d48f20"
@@ -73,6 +78,31 @@
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
 			"Rev": "f9f629a1d082960e5d1747f33c2b378612615fea"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/mount",
+			"Comment": "v1.4.1-4110-g3f11e05",
+			"Rev": "3f11e05db2c2efdac0455b693efdacc6fce1ab62"
+		},
+		{
+			"ImportPath": "github.com/docker/docker/pkg/units",
+			"Comment": "v1.4.1-4110-g3f11e05",
+			"Rev": "3f11e05db2c2efdac0455b693efdacc6fce1ab62"
+		},
+		{
+			"ImportPath": "github.com/docker/libcontainer/cgroups",
+			"Comment": "v2.2.1-2-g73eab50",
+			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
+		},
+		{
+			"ImportPath": "github.com/docker/libcontainer/configs",
+			"Comment": "v2.2.1-2-g73eab50",
+			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
+		},
+		{
+			"ImportPath": "github.com/docker/libcontainer/system",
+			"Comment": "v2.2.1-2-g73eab50",
+			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
 		},
 		{
 			"ImportPath": "github.com/ghodss/yaml",
@@ -115,6 +145,10 @@
 		{
 			"ImportPath": "github.com/spf13/pflag",
 			"Rev": "5644820622454e71517561946e3d94b9f9db6842"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/ssh",
+			"Rev": "1e856cbfdf9bc25eefca75f83f25d55e35ae72e0"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
