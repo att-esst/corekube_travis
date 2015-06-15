@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -99,6 +99,7 @@ func TestSelectorMatches(t *testing.T) {
 	expectMatch(t, "x=y,z=w", Set{"x": "y", "z": "w"})
 	expectMatch(t, "x!=y,z!=w", Set{"x": "z", "z": "a"})
 	expectMatch(t, "notin=in", Set{"notin": "in"}) // in and notin in exactMatch
+	expectNoMatch(t, "x=z", Set{})
 	expectNoMatch(t, "x=y", Set{"x": "z"})
 	expectNoMatch(t, "x=y,z=w", Set{"x": "w", "z": "w"})
 	expectNoMatch(t, "x!=y,z!=w", Set{"x": "z", "z": "w"})
@@ -322,7 +323,7 @@ func TestToString(t *testing.T) {
 	}
 	for _, ts := range toStringTests {
 		if out := ts.In.String(); out == "" && ts.Valid {
-			t.Errorf("%+v.String() => '%v' expected no error", ts.In)
+			t.Errorf("%+v.String() => '%v' expected no error", ts.In, out)
 		} else if out != ts.Out {
 			t.Errorf("%+v.String() => '%v' want '%v'", ts.In, out, ts.Out)
 		}

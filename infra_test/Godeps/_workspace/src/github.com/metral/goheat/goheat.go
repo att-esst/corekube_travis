@@ -135,6 +135,10 @@ func createStackReq(
 	}
 
 	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(h)
+	log.Printf("Stack Create: status: %d", statusCode)
+	if statusCode != 201 {
+		log.Printf("Stack Create: bodyBytes: %s", bodyBytes)
+	}
 	return statusCode, bodyBytes
 }
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ type RESTCreateStrategy interface {
 	PrepareForCreate(obj runtime.Object)
 	// Validate is invoked after default fields in the object have been filled in before
 	// the object is persisted.
-	Validate(obj runtime.Object) fielderrors.ValidationErrorList
+	Validate(ctx api.Context, obj runtime.Object) fielderrors.ValidationErrorList
 }
 
 // BeforeCreate ensures that common operations for all resources are performed on creation. It only returns
@@ -63,7 +63,7 @@ func BeforeCreate(strategy RESTCreateStrategy, ctx api.Context, obj runtime.Obje
 	api.FillObjectMetaSystemFields(ctx, objectMeta)
 	api.GenerateName(strategy, objectMeta)
 
-	if errs := strategy.Validate(obj); len(errs) > 0 {
+	if errs := strategy.Validate(ctx, obj); len(errs) > 0 {
 		return errors.NewInvalid(kind, objectMeta.Name, errs)
 	}
 	return nil

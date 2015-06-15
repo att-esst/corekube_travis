@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import (
 type RateLimiter interface {
 	// CanAccept returns true if the rate is below the limit, false otherwise
 	CanAccept() bool
+	// Accept returns once a token becomes available.
+	Accept()
 	// Stop stops the rate limiter, subsequent calls to CanAccept will return false
 	Stop()
 }
@@ -49,6 +51,12 @@ func NewTokenBucketRateLimiter(qps float32, burst int) RateLimiter {
 	return rate
 }
 
+type fakeRateLimiter struct{}
+
+func NewFakeRateLimiter() RateLimiter {
+	return &fakeRateLimiter{}
+}
+
 func newTokenBucketRateLimiterFromTicker(ticker <-chan time.Time, burst int) *tickRateLimiter {
 	if burst < 1 {
 		panic("burst must be a positive integer")
@@ -71,6 +79,11 @@ func (t *tickRateLimiter) CanAccept() bool {
 	default:
 		return false
 	}
+}
+
+// Accept will block until a token becomes available
+func (t *tickRateLimiter) Accept() {
+	<-t.tokens
 }
 
 func (t *tickRateLimiter) Stop() {
@@ -102,3 +115,11 @@ func (t *tickRateLimiter) increment() {
 	default:
 	}
 }
+
+func (t *fakeRateLimiter) CanAccept() bool {
+	return true
+}
+
+func (t *fakeRateLimiter) Stop() {}
+
+func (t *fakeRateLimiter) Accept() {}

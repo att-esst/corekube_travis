@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -445,7 +445,7 @@ func (p *Parser) parse() ([]Requirement, error) {
 		case IdentifierToken:
 			r, err := p.parseRequirement()
 			if err != nil {
-				return nil, fmt.Errorf("unable to parse requiremnt: ", err)
+				return nil, fmt.Errorf("unable to parse requiremnt: %v", err)
 			}
 			requirements = append(requirements, *r)
 			t, l := p.consume(Values)
@@ -665,7 +665,7 @@ func validateLabelValue(v string) error {
 }
 
 // SelectorFromSet returns a Selector which will match exactly the given Set. A
-// nil Set is considered equivalent to Everything().
+// nil and empty Sets are considered equivalent to Everything().
 func SelectorFromSet(ls Set) Selector {
 	if ls == nil {
 		return LabelSelector{}

@@ -18,7 +18,7 @@ build_status=`echo $result | grep "Successfully built"`
 
 if [ "$build_status" ] ; then
     if [ "$TEMPLATE" ] ; then
-        docker run --name $RUN_TEST -d -v $ENV_FILE:/tmp/env -v $TEMPLATE:/tmp/template.yaml $RUN_TEST
+        docker run --name $RUN_TEST -d -v $ENV_FILE:/tmp/env -v $TEMPLATE:/tmp/corekube-cloudservers.yaml $RUN_TEST
     else
         docker run --name $RUN_TEST -d -v $ENV_FILE:/tmp/env $RUN_TEST
     fi

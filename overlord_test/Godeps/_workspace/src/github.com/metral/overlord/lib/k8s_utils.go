@@ -6,14 +6,14 @@ import (
 	"log"
 	"time"
 
-	"github.com/GoogleCloudPlatform/kubernetes/pkg/api/v1beta3"
+	"github.com/GoogleCloudPlatform/kubernetes/pkg/api/v1"
 	"github.com/metral/goutils"
 )
 
 type PreregisteredKNode struct {
 	Kind       string                 `json:"kind,omitempty"`
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
-	Status     v1beta3.NodeStatus     `json:"status,omitempty"`
+	Status     v1.NodeStatus          `json:"status,omitempty"`
 	APIVersion string                 `json:"apiVersion,omitempty"`
 }
 
@@ -103,11 +103,11 @@ func registerKNodes(master *FleetMachine, node *FleetMachine) {
 }
 
 func register(endpoint, addr string) error {
-	status := v1beta3.NodeStatus{}
-	status.Addresses = []v1beta3.NodeAddress{
-		v1beta3.NodeAddress{
+	status := v1.NodeStatus{}
+	status.Addresses = []v1.NodeAddress{
+		v1.NodeAddress{
 			Address: addr,
-			Type:    v1beta3.NodeInternalIP,
+			Type:    v1.NodeInternalIP,
 		},
 	}
 
