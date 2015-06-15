@@ -1,9 +1,14 @@
 #!/bin/bash
 
-docker rm -f overlord_test
+RUN_TEST=$1
+ENV_FILE=$2
+TEMPLATE=$3
+
+docker rm -f $RUN_TEST
 DIR="$(cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-result=`docker build --rm -t overlord_test $DIR/.`
+result=`docker build --no-cache --rm -t $RUN_TEST -f $DIR/$RUN_TEST/Dockerfile .`
+>>>>>>> docker
 echo "$result"
 
 echo ""
@@ -13,12 +18,9 @@ echo ""
 build_status=`echo $result | grep "Successfully built"`
 
 if [ "$build_status" ] ; then
-    cp ~/travis /tmp/travis
-    pushd $GOPATH/src/github.com/metral/overlord;
-    COMMIT=`git rev-parse --short HEAD`
-    echo $COMMIT;
-    sed -i "s#TRAVIS_COMMIT.*#TRAVIS_COMMIT=$COMMIT#g" /tmp/travis
-    popd
-
-    docker run --env-file=/tmp/travis -i --entrypoint /bin/bash -t --rm -v ~/go/src/github.com/metral/goheat:/gopath/src/github.com/metral/goheat -v ~/go/src/github.com/metral/goutils:/gopath/src/github.com/metral/goutils -v ~/go/src/github.com/metral/corekube_travis:/gopath/src/github.com/metral/corekube_travis overlord_test -s
+    if [ "$TEMPLATE" ] ; then
+        docker run --name $RUN_TEST -d -v $ENV_FILE:/tmp/env -v $TEMPLATE:/tmp/template.yaml $RUN_TEST
+    else
+        docker run --name $RUN_TEST -d -v $ENV_FILE:/tmp/env $RUN_TEST
+    fi
 fi
