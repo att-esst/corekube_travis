@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,10 +21,26 @@ import (
 
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/api"
 	"github.com/GoogleCloudPlatform/kubernetes/pkg/util"
+	"github.com/golang/glog"
 )
 
-func init() {
+func addDefaultingFuncs() {
 	api.Scheme.AddDefaultingFuncs(
+		func(obj *ReplicationController) {
+			var labels map[string]string
+			if obj.Spec.Template != nil {
+				labels = obj.Spec.Template.Labels
+			}
+			// TODO: support templates defined elsewhere when we support them in the API
+			if labels != nil {
+				if len(obj.Spec.Selector) == 0 {
+					obj.Spec.Selector = labels
+				}
+				if len(obj.Labels) == 0 {
+					obj.Labels = labels
+				}
+			}
+		},
 		func(obj *Volume) {
 			if util.AllPtrFieldsNil(&obj.VolumeSource) {
 				obj.VolumeSource = VolumeSource{
@@ -51,13 +67,29 @@ func init() {
 			if obj.TerminationMessagePath == "" {
 				obj.TerminationMessagePath = TerminationMessagePathDefault
 			}
+			defaultSecurityContext(obj)
 		},
-		func(obj *Service) {
-			if obj.Spec.Protocol == "" {
-				obj.Spec.Protocol = ProtocolTCP
+		func(obj *ServiceSpec) {
+			if obj.SessionAffinity == "" {
+				obj.SessionAffinity = ServiceAffinityNone
 			}
-			if obj.Spec.SessionAffinity == "" {
-				obj.Spec.SessionAffinity = AffinityTypeNone
+			if obj.Type == "" {
+				if obj.CreateExternalLoadBalancer {
+					obj.Type = ServiceTypeLoadBalancer
+				} else {
+					obj.Type = ServiceTypeClusterIP
+				}
+			} else if obj.Type == ServiceTypeLoadBalancer {
+				obj.CreateExternalLoadBalancer = true
+			}
+			for i := range obj.Ports {
+				sp := &obj.Ports[i]
+				if sp.Protocol == "" {
+					sp.Protocol = ProtocolTCP
+				}
+				if sp.TargetPort == util.NewIntOrStringFromInt(0) || sp.TargetPort == util.NewIntOrStringFromString("") {
+					sp.TargetPort = util.NewIntOrStringFromInt(sp.Port)
+				}
 			}
 		},
 		func(obj *PodSpec) {
@@ -81,6 +113,19 @@ func init() {
 				obj.Type = SecretTypeOpaque
 			}
 		},
+		func(obj *PersistentVolume) {
+			if obj.Status.Phase == "" {
+				obj.Status.Phase = VolumePending
+			}
+			if obj.Spec.PersistentVolumeReclaimPolicy == "" {
+				obj.Spec.PersistentVolumeReclaimPolicy = PersistentVolumeReclaimRetain
+			}
+		},
+		func(obj *PersistentVolumeClaim) {
+			if obj.Status.Phase == "" {
+				obj.Status.Phase = ClaimPending
+			}
+		},
 		func(obj *Endpoints) {
 			for i := range obj.Subsets {
 				ss := &obj.Subsets[i]
@@ -97,12 +142,6 @@ func init() {
 				obj.Path = "/"
 			}
 		},
-		func(obj *ServiceSpec) {
-			if obj.TargetPort.Kind == util.IntstrInt && obj.TargetPort.IntVal == 0 ||
-				obj.TargetPort.Kind == util.IntstrString && obj.TargetPort.StrVal == "" {
-				obj.TargetPort = util.NewIntOrStringFromInt(obj.Port)
-			}
-		},
 		func(obj *NamespaceStatus) {
 			if obj.Phase == "" {
 				obj.Phase = NamespaceActive
@@ -111,6 +150,11 @@ func init() {
 		func(obj *Node) {
 			if obj.Spec.ExternalID == "" {
 				obj.Spec.ExternalID = obj.Name
+			}
+		},
+		func(obj *ObjectFieldSelector) {
+			if obj.APIVersion == "" {
+				obj.APIVersion = "v1beta3"
 			}
 		},
 	)
@@ -123,6 +167,45 @@ func defaultHostNetworkPorts(containers *[]Container) {
 			if (*containers)[i].Ports[j].HostPort == 0 {
 				(*containers)[i].Ports[j].HostPort = (*containers)[i].Ports[j].ContainerPort
 			}
+		}
+	}
+}
+
+// defaultSecurityContext performs the downward and upward merges of a pod definition
+func defaultSecurityContext(container *Container) {
+	if container.SecurityContext == nil {
+		if (len(container.Capabilities.Add) == 0) && (len(container.Capabilities.Drop) == 0) && (container.Privileged == false) {
+			return
+		}
+		glog.V(5).Infof("creating security context for container %s", container.Name)
+		container.SecurityContext = &SecurityContext{}
+	}
+	// if there are no capabilities defined on the SecurityContext then copy the container settings
+	if container.SecurityContext.Capabilities == nil {
+		container.SecurityContext.Capabilities = &container.Capabilities
+	} else {
+		// if there are capabilities defined on the security context and the container setting is
+		// empty then assume that it was left off the pod definition and ensure that the container
+		// settings match the security context settings (checked by the convert functions).  If
+		// there are settings in both then don't touch it, the converter will error if they don't
+		// match
+		if len(container.Capabilities.Add) == 0 {
+			container.Capabilities.Add = container.SecurityContext.Capabilities.Add
+		}
+		if len(container.Capabilities.Drop) == 0 {
+			container.Capabilities.Drop = container.SecurityContext.Capabilities.Drop
+		}
+	}
+	// if there are no privileged settings on the security context then copy the container settings
+	if container.SecurityContext.Privileged == nil {
+		container.SecurityContext.Privileged = &container.Privileged
+	} else {
+		// we don't have a good way to know if container.Privileged was set or just defaulted to false
+		// so the best we can do here is check if the securityContext is set to true and the
+		// container is set to false and assume that the Privileged field was left off the container
+		// definition and not an intentional mismatch
+		if *container.SecurityContext.Privileged && !container.Privileged {
+			container.Privileged = *container.SecurityContext.Privileged
 		}
 	}
 }

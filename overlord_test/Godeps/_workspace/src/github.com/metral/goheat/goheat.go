@@ -95,7 +95,7 @@ func createStackReq(
 
 	timeout := int(10)
 	params := map[string]string{
-		"key_name": keypair,
+		"keyname": keypair,
 	}
 
 	if len(*extraParams) > 0 {
@@ -135,6 +135,10 @@ func createStackReq(
 	}
 
 	statusCode, bodyBytes, _ := goutils.HttpCreateRequest(h)
+	log.Printf("Stack Create: status: %d", statusCode)
+	if statusCode != 201 {
+		log.Printf("Stack Create: bodyBytes: %s", bodyBytes)
+	}
 	return statusCode, bodyBytes
 }
 

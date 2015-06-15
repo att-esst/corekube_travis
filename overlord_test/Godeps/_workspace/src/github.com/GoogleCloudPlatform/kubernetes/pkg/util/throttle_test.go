@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,5 +58,19 @@ func TestOverBurst(t *testing.T) {
 	for i := 0; i < 4; i++ {
 		ticker <- time.Now()
 		r.step()
+	}
+}
+
+func TestThrottle(t *testing.T) {
+	r := NewTokenBucketRateLimiter(10, 5)
+
+	// Should consume 5 tokens immediately, then
+	// the remaining 11 should take at least 1 second (0.1s each)
+	expectedFinish := time.Now().Add(time.Second * 1)
+	for i := 0; i < 16; i++ {
+		r.Accept()
+	}
+	if time.Now().Before(expectedFinish) {
+		t.Error("rate limit was not respected, finished too early")
 	}
 }

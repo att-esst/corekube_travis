@@ -12,58 +12,58 @@
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/api",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/auth/user",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/conversion",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/fields",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/labels",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/runtime",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/types",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/util",
-			"Comment": "v0.14.2",
-			"Rev": "3ffb6193b5152fc3a2e2a4a12111130f4b531110"
+			"Comment": "v0.19.0-294-gb65c321",
+			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/log",
-			"Comment": "v0.9.1",
-			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
+			"Comment": "v0.10.1",
+			"Rev": "dc1d8e82dc07151297d8a2396dcf52e703d48f20"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/pkg",
-			"Comment": "v0.9.1",
-			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
+			"Comment": "v0.10.1",
+			"Rev": "dc1d8e82dc07151297d8a2396dcf52e703d48f20"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/unit",
-			"Comment": "v0.9.1",
-			"Rev": "037e9996d85f4c4a9c66b891b7343acf533aa28d"
+			"Comment": "v0.10.1",
+			"Rev": "dc1d8e82dc07151297d8a2396dcf52e703d48f20"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-systemd/unit",
@@ -72,7 +72,7 @@
 		},
 		{
 			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "3e6e67c4dcea3ac2f25fd4731abc0e1deaf36216"
+			"Rev": "f9f629a1d082960e5d1747f33c2b378612615fea"
 		},
 		{
 			"ImportPath": "github.com/ghodss/yaml",
@@ -92,7 +92,7 @@
 		},
 		{
 			"ImportPath": "github.com/metral/goheat",
-			"Rev": "b410a7e9977211bfbc202d2696b1a7c4c78c75f8"
+			"Rev": "04583c4063f9607ba4deceaf4d5f529441fcd57a"
 		},
 		{
 			"ImportPath": "github.com/metral/goutils",
@@ -100,8 +100,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-39-g8646b90",
-			"Rev": "8646b907b45418772db0c5f45009f7cf7725e151"
+			"Comment": "v0.0.1-43-g8957e5f",
+			"Rev": "8957e5f78b28907c3a76b7dc151f67b8d94f41e3"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
@@ -114,7 +114,7 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "18d831e92d67eafd1b0db8af9ffddbd04f7ae1f4"
+			"Rev": "5644820622454e71517561946e3d94b9f9db6842"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
@@ -122,7 +122,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "49c95bdc21843256fb6c4e0d370a05f24a0bf213"
+			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
 		},
 		{
 			"ImportPath": "speter.net/go/exp/math/dec/inf",

@@ -1,5 +1,5 @@
 /*
-Copyright 2014 Google Inc. All rights reserved.
+Copyright 2014 The Kubernetes Authors All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ type RESTUpdateStrategy interface {
 	PrepareForUpdate(obj, old runtime.Object)
 	// ValidateUpdate is invoked after default fields in the object have been filled in before
 	// the object is persisted.
-	ValidateUpdate(obj, old runtime.Object) fielderrors.ValidationErrorList
+	ValidateUpdate(ctx api.Context, obj, old runtime.Object) fielderrors.ValidationErrorList
 }
 
 // BeforeUpdate ensures that common operations for all resources are performed on update. It only returns
@@ -58,7 +58,7 @@ func BeforeUpdate(strategy RESTUpdateStrategy, ctx api.Context, obj, old runtime
 		objectMeta.Namespace = api.NamespaceNone
 	}
 	strategy.PrepareForUpdate(obj, old)
-	if errs := strategy.ValidateUpdate(obj, old); len(errs) > 0 {
+	if errs := strategy.ValidateUpdate(ctx, obj, old); len(errs) > 0 {
 		return errors.NewInvalid(kind, objectMeta.Name, errs)
 	}
 	return nil
