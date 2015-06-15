@@ -1,5 +1,12 @@
 #!/bin/bash
 
+
+if [ ! -d "$GOPATH/src/github.com/metral/overlord" ]; then
+    pushd $GOPATH/src/github.com/metral
+    git clone -b $TRAVIS_BRANCH https://github.com/metral/overlord
+    git -C overlord checkout -qf $TRAVIS_COMMIT
+    popd
+fi
 # Clone "metral/corekube" just to have access to latest corekube Heat
 # template. The tests in "metral/corekube_travis" below use the template to
 # deploy a new cluster by overwriting the template's git-command parameter
