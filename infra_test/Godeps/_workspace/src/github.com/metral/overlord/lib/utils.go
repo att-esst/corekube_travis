@@ -90,9 +90,9 @@ func Main() {
 						}
 					}
 
-					if isMinion(&fleetMachine) {
-						registerKNodes(&masterFleetMachine, &fleetMachine)
-					}
+					//if isMinion(&fleetMachine) {
+					//	registerKNodes(&masterFleetMachine, &fleetMachine)
+					//}
 
 					setMachinesSeen(allMachinesSeen)
 				}
