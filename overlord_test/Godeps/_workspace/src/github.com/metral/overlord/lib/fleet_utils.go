@@ -62,6 +62,7 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 		"controller": "master-controller-manager@.service",
 		"scheduler":  "master-scheduler@.service",
 		"download":   "master-download-kubernetes@.service",
+		"dns":        "master-dns@.service",
 	}
 
 	createdFiles := []string{}
@@ -132,6 +133,21 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 	goutils.PrintErrors(
 		goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 	createdFiles = append(createdFiles, scheduler_file)
+
+	// Substitute the machine ID and file paths into systemd file
+	filename = strings.Replace(files["dns"], "@", "@"+fleetMachine.ID, -1)
+	dns_file := fmt.Sprintf("%s/%s", unitPathInfo[0]["path"], filename)
+	readfile, err = ioutil.ReadFile(fmt.Sprintf("/templates/%s", files["dns"]))
+	goutils.PrintErrors(goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
+
+	dns_content := strings.Replace(string(readfile), "<RC_URL>", Conf.SkyDNSRepContr, -1)
+	dns_content = strings.Replace(dns_content, "<SVC_URL>", Conf.SkyDNSService, -1)
+	dns_content = strings.Replace(dns_content, "<ID>", fleetMachine.ID, -1)
+	dns_content = strings.Replace(dns_content, "<MASTER_IP>", fleetMachine.PublicIP, -1)
+
+	err = ioutil.WriteFile(dns_file, []byte(dns_content), 0644)
+	goutils.PrintErrors(goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
+	createdFiles = append(createdFiles, dns_file)
 
 	log.Printf("Created all unit files for: %s\n", fleetMachine.ID)
 	return createdFiles

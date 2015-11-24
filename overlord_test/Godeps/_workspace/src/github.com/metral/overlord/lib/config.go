@@ -13,6 +13,8 @@ type VersionsConf struct {
 	FleetAPIPort         string `json:"fleetAPIPort"`
 	EtcdAPIVersion       string `json:"etcdAPIVersion"`
 	EtcdClientPort       string `json:"etcdClientPort"`
+	SkyDNSService        string `json:"skyDNSSVC"`
+	SkyDNSRepContr       string `json:"skyDNSRC"`
 }
 
 var Conf = new(VersionsConf)
