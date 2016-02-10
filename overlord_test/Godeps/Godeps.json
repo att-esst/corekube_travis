@@ -57,18 +57,18 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/log",
-			"Comment": "v0.11.2",
-			"Rev": "6f005e47eeaaf0978bc3155b3252a38d75c4bb7e"
+			"Comment": "v0.11.5",
+			"Rev": "c05214e9019b58c0beebb6bcc907ea1ee61def4b"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/pkg",
-			"Comment": "v0.11.2",
-			"Rev": "6f005e47eeaaf0978bc3155b3252a38d75c4bb7e"
+			"Comment": "v0.11.5",
+			"Rev": "c05214e9019b58c0beebb6bcc907ea1ee61def4b"
 		},
 		{
 			"ImportPath": "github.com/coreos/fleet/unit",
-			"Comment": "v0.11.2",
-			"Rev": "6f005e47eeaaf0978bc3155b3252a38d75c4bb7e"
+			"Comment": "v0.11.5",
+			"Rev": "c05214e9019b58c0beebb6bcc907ea1ee61def4b"
 		},
 		{
 			"ImportPath": "github.com/coreos/go-systemd/unit",
@@ -130,12 +130,12 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-57-g66a17cc",
-			"Rev": "66a17cc7ab1713b73dc7826c9494e60ea68ee5f5"
+			"Comment": "v0.0.1-60-g4f24858",
+			"Rev": "4f2485857ba448c3f8e2e5be511d501fe16bae62"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
-			"Rev": "442e588f213303bec7936deba67901f8fc8f18b1"
+			"Rev": "281073eb9eb092240d33ef253c404f1cca550309"
 		},
 		{
 			"ImportPath": "github.com/rackspace/gophercloud",
@@ -144,11 +144,11 @@
 		},
 		{
 			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "5644820622454e71517561946e3d94b9f9db6842"
+			"Rev": "7f60f83a2c81bc3c3c0d5297f61ddfa68da9d3b7"
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "1e856cbfdf9bc25eefca75f83f25d55e35ae72e0"
+			"Rev": "1f22c0103821b9390939b6776727195525381532"
 		},
 		{
 			"ImportPath": "golang.org/x/net/context",
@@ -156,7 +156,7 @@
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "c1cd2254a6dd314c9d73c338c12688c9325d85c6"
+			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
 		},
 		{
 			"ImportPath": "speter.net/go/exp/math/dec/inf",
