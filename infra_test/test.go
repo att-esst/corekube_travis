@@ -26,7 +26,7 @@ func overlayNetworksCountTest(
 	for {
 		msg = "overlayNetworksCountTest: "
 
-		overlordIP := util.ExtractIPFromStackDetails(d, "overlord_ip")
+		discoveryIP := util.ExtractIPFromStackDetails(d, "discovery_ip")
 		masterCount := 1
 		minionCount, _ := strconv.Atoi(
 			d.Stack.Parameters["kubernetes_minion_count"].(string))
@@ -36,7 +36,7 @@ func overlayNetworksCountTest(
 		path := fmt.Sprintf("%s/keys/coreos.com/network/subnets",
 			lib.Conf.EtcdAPIVersion)
 		url := fmt.Sprintf("http://%s:%s/%s",
-			overlordIP, lib.Conf.EtcdClientPort, path)
+			discoveryIP, lib.Conf.EtcdClientPort, path)
 
 		token := rax.IdentitySetup(config)
 
