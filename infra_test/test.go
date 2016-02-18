@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"strconv"
@@ -79,8 +80,13 @@ func runTests(config *util.HeatConfig, details *util.StackDetails) {
 }
 
 func main() {
+	flag.Parse()
+
 	params := map[string]string{}
 	config, stackDetails := framework.BuildConfigAndCreateStack(&params)
 	runTests(config, stackDetails)
-	goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
+
+	if *framework.DeleteStack {
+		goheat.DeleteStack(config, stackDetails.Stack.Links[0].Href)
+	}
 }

@@ -18,6 +18,7 @@ var (
 	password     = flag.String("password", "", "Openstack Password")
 	tenantId     = flag.String("tenantId", "", "Openstack Tenant ID")
 	timeout      = flag.Int("timeout", 10, "Heat stack create timeout")
+	DeleteStack  = flag.Bool("deleteStack", true, "Delete the stack if successful")
 )
 
 func StartTestTimeout(timeout int,
@@ -44,8 +45,6 @@ func StartTestTimeout(timeout int,
 
 func BuildConfigAndCreateStack(
 	params *map[string]string) (*util.HeatConfig, *util.StackDetails) {
-
-	flag.Parse()
 
 	c := util.HeatConfig{
 		TemplateFile: *templateFile,
