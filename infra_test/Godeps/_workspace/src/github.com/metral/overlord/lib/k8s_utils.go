@@ -1,21 +1,13 @@
 package lib
 
-import (
-	"encoding/json"
-	"fmt"
-	"log"
-	"time"
-
-	"github.com/GoogleCloudPlatform/kubernetes/pkg/api/v1"
-	"github.com/metral/goutils"
-)
-
+/*
 type PreregisteredKNode struct {
 	Kind       string                 `json:"kind,omitempty"`
 	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 	Status     v1.NodeStatus          `json:"status,omitempty"`
 	APIVersion string                 `json:"apiVersion,omitempty"`
 }
+*/
 
 type KNodesResult struct {
 	Kind              string `json:"kind,omitempty"`
@@ -44,26 +36,7 @@ type KNode struct {
 	Resources         map[interface{}]interface{}
 }
 
-func isMaster(fleetMachine *FleetMachine) bool {
-	role := fleetMachine.Metadata["kubernetes_role"]
-
-	switch role {
-	case "master":
-		return true
-	}
-	return false
-}
-
-func isMinion(fleetMachine *FleetMachine) bool {
-	role := fleetMachine.Metadata["kubernetes_role"]
-
-	switch role {
-	case "minion":
-		return true
-	}
-	return false
-}
-
+/*
 func registerKNodes(master *FleetMachine, node *FleetMachine) {
 
 	// Get registered nodes, if any
@@ -88,13 +61,13 @@ func registerKNodes(master *FleetMachine, node *FleetMachine) {
 
 	// See if nodes discovered have been registered. If not, register
 	registered := false
-	/*
-		for _, registeredKNode := range nodesResult.Nodes {
-			if registeredKNode.HostIP == node.PublicIP {
-				registered = true
-			}
-		}
-	*/
+	//
+	//		for _, registeredKNode := range nodesResult.Nodes {
+	//			if registeredKNode.HostIP == node.PublicIP {
+	//				registered = true
+	//			}
+	//		}
+	//
 
 	if !registered {
 		register(endpoint, node.PublicIP)
@@ -146,3 +119,4 @@ func register(endpoint, addr string) error {
 		goutils.ErrorParams{Err: err, CallerNum: 1, Fatal: false})
 	return nil
 }
+*/

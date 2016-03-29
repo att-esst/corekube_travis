@@ -13,6 +13,7 @@ type VersionsConf struct {
 	FleetAPIPort         string `json:"fleetAPIPort"`
 	EtcdAPIVersion       string `json:"etcdAPIVersion"`
 	EtcdClientPort       string `json:"etcdClientPort"`
+	KubeSystemNamespace  string `json:"kubeSystemNS"`
 	SkyDNSService        string `json:"skyDNSSVC"`
 	SkyDNSRepContr       string `json:"skyDNSRC"`
 }
