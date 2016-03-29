@@ -1,57 +1,8 @@
 {
 	"ImportPath": "github.com/metral/corekube_travis/overlord_test",
 	"GoVersion": "go1.5",
+	"GodepVersion": "v58",
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/go-uuid/uuid",
-			"Comment": "null-15",
-			"Rev": "35bc42037350f0078e3c974c6ea690f1926603ab"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/api",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/auth/user",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/conversion",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/fields",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/labels",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/runtime",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/types",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/pkg/util",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
-		{
-			"ImportPath": "github.com/GoogleCloudPlatform/kubernetes/third_party/forked/reflect",
-			"Comment": "v0.19.0-294-gb65c321",
-			"Rev": "b65c321a87817110a9678b74ee4770d3f945712f"
-		},
 		{
 			"ImportPath": "github.com/coreos/fleet/log",
 			"Comment": "v0.11.5",
@@ -69,57 +20,28 @@
 		},
 		{
 			"ImportPath": "github.com/coreos/go-systemd/unit",
-			"Comment": "v2-35-gcf3cdf7",
-			"Rev": "cf3cdf77462baaad163ad2d5d1984b9c1b493701"
-		},
-		{
-			"ImportPath": "github.com/davecgh/go-spew/spew",
-			"Rev": "f9f629a1d082960e5d1747f33c2b378612615fea"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/mount",
-			"Comment": "v1.4.1-4110-g3f11e05",
-			"Rev": "3f11e05db2c2efdac0455b693efdacc6fce1ab62"
-		},
-		{
-			"ImportPath": "github.com/docker/docker/pkg/units",
-			"Comment": "v1.4.1-4110-g3f11e05",
-			"Rev": "3f11e05db2c2efdac0455b693efdacc6fce1ab62"
-		},
-		{
-			"ImportPath": "github.com/docker/libcontainer/cgroups",
-			"Comment": "v2.2.1-2-g73eab50",
-			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
-		},
-		{
-			"ImportPath": "github.com/docker/libcontainer/configs",
-			"Comment": "v2.2.1-2-g73eab50",
-			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
-		},
-		{
-			"ImportPath": "github.com/docker/libcontainer/system",
-			"Comment": "v2.2.1-2-g73eab50",
-			"Rev": "73eab50ed6320687ce236ffceeec5485498c4d62"
-		},
-		{
-			"ImportPath": "github.com/ghodss/yaml",
-			"Rev": "c3eb24aeea63668ebdac08d2e252f20df8b6b1ae"
-		},
-		{
-			"ImportPath": "github.com/golang/glog",
-			"Rev": "44145f04b68cf362d9c4df2182967c2275eaefed"
-		},
-		{
-			"ImportPath": "github.com/google/gofuzz",
-			"Rev": "bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5"
+			"Comment": "v5",
+			"Rev": "7b2428fec40033549c68f54e26e89e7ca9a9ce31"
 		},
 		{
 			"ImportPath": "github.com/jonboulle/clockwork",
 			"Rev": "3f831b65b61282ba6bece21b91beea2edc4c887a"
 		},
 		{
+			"ImportPath": "github.com/metral/corekube_travis/framework",
+			"Rev": "90177724de7b217558d78eb3ab149cebcb15286b"
+		},
+		{
 			"ImportPath": "github.com/metral/goheat",
-			"Rev": "04583c4063f9607ba4deceaf4d5f529441fcd57a"
+			"Rev": "026203499a3c3b6d90d85e7c73fdfbb0db77f5dc"
+		},
+		{
+			"ImportPath": "github.com/metral/goheat/rax",
+			"Rev": "026203499a3c3b6d90d85e7c73fdfbb0db77f5dc"
+		},
+		{
+			"ImportPath": "github.com/metral/goheat/util",
+			"Rev": "026203499a3c3b6d90d85e7c73fdfbb0db77f5dc"
 		},
 		{
 			"ImportPath": "github.com/metral/goutils",
@@ -127,8 +49,8 @@
 		},
 		{
 			"ImportPath": "github.com/metral/overlord/lib",
-			"Comment": "v0.0.1-60-g4f24858",
-			"Rev": "4f2485857ba448c3f8e2e5be511d501fe16bae62"
+			"Comment": "v0.0.1-66-gc58bf67",
+			"Rev": "c58bf67bd0a71093d772c6a2df7f10da30e79d64"
 		},
 		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
@@ -140,28 +62,44 @@
 			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "github.com/spf13/pflag",
-			"Rev": "7f60f83a2c81bc3c3c0d5297f61ddfa68da9d3b7"
+			"ImportPath": "github.com/rackspace/gophercloud/openstack",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/curve25519",
-			"Rev": "1f22c0103821b9390939b6776727195525381532"
+			"ImportPath": "github.com/rackspace/gophercloud/openstack/identity/v2/tenants",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "golang.org/x/crypto/ssh",
-			"Rev": "1f22c0103821b9390939b6776727195525381532"
+			"ImportPath": "github.com/rackspace/gophercloud/openstack/identity/v2/tokens",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "golang.org/x/net/context",
-			"Rev": "84ba27dd5b2d8135e9da1395277f2c9333a2ffda"
+			"ImportPath": "github.com/rackspace/gophercloud/openstack/identity/v3/tokens",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "gopkg.in/yaml.v2",
-			"Rev": "f7716cbe52baa25d2e9b0d0da546fcf909fc16b4"
+			"ImportPath": "github.com/rackspace/gophercloud/openstack/utils",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		},
 		{
-			"ImportPath": "speter.net/go/exp/math/dec/inf",
-			"Rev": "42ca6cd68aa922bc3f32f1e056e61b65945d9ad7"
+			"ImportPath": "github.com/rackspace/gophercloud/pagination",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
+		},
+		{
+			"ImportPath": "github.com/rackspace/gophercloud/testhelper",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
+		},
+		{
+			"ImportPath": "github.com/rackspace/gophercloud/testhelper/client",
+			"Comment": "v1.0.0-561-gd2c2ad5",
+			"Rev": "d2c2ad58822782f3bc283c6c342229417cb8b538"
 		}
 	]
 }

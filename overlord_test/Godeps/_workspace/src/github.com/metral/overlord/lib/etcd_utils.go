@@ -44,7 +44,7 @@ func getEtcdAPI(host string, port string) string {
 	return fmt.Sprintf("http://%s:%s", host, port)
 }
 
-func getFleetMachines(fleetResult *Result) {
+func GetFleetMachines(fleetResult *Result) {
 	path := fmt.Sprintf("%s/keys/_coreos.com/fleet/machines", Conf.EtcdAPIVersion)
 	url := getFullAPIURL(Conf.EtcdClientPort, path)
 
@@ -71,7 +71,7 @@ func getFullAPIURL(port, etcdAPIPath string) string {
 	return url
 }
 
-func getMachinesSeen() []string {
+func GetMachinesSeen() []string {
 	var machinesSeenResult NodeResult
 
 	path := fmt.Sprintf("%s/keys/seen", Conf.EtcdAPIVersion)
@@ -100,7 +100,7 @@ func getMachinesSeen() []string {
 	return machinesSeen
 }
 
-func machineSeen(allMachinesSeen []string, id string) bool {
+func MachineSeen(allMachinesSeen []string, id string) bool {
 	seen := false
 
 	for _, machineSeen := range allMachinesSeen {
@@ -112,7 +112,7 @@ func machineSeen(allMachinesSeen []string, id string) bool {
 	return seen
 }
 
-func setMachinesSeen(machines []string) {
+func SetMachinesSeen(machines []string) {
 	path := fmt.Sprintf("%s/keys/seen", Conf.EtcdAPIVersion)
 	urlStr := getFullAPIURL(Conf.EtcdClientPort, path)
 	data := ""
@@ -141,7 +141,7 @@ func setMachinesSeen(machines []string) {
 	goutils.HttpCreateRequest(p)
 }
 
-func waitForMetadata(
+func WaitForMetadata(
 	resultNode *ResultNode,
 	fleetMachine *FleetMachine,
 ) {

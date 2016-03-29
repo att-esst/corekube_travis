@@ -54,7 +54,7 @@ func (m Map) String() string {
 	return output
 }
 
-func createMasterUnits(fleetMachine *FleetMachine) []string {
+func CreateMasterUnits(fleetMachine *FleetMachine) []string {
 	unitPathInfo := setupUnitFilesDeps()
 
 	files := map[string]string{
@@ -140,7 +140,8 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 	readfile, err = ioutil.ReadFile(fmt.Sprintf("/templates/%s", files["dns"]))
 	goutils.PrintErrors(goutils.ErrorParams{Err: err, CallerNum: 2, Fatal: false})
 
-	dns_content := strings.Replace(string(readfile), "<RC_URL>", Conf.SkyDNSRepContr, -1)
+	dns_content := strings.Replace(string(readfile), "<NS_URL>", Conf.KubeSystemNamespace, -1)
+	dns_content = strings.Replace(dns_content, "<RC_URL>", Conf.SkyDNSRepContr, -1)
 	dns_content = strings.Replace(dns_content, "<SVC_URL>", Conf.SkyDNSService, -1)
 	dns_content = strings.Replace(dns_content, "<ID>", fleetMachine.ID, -1)
 	dns_content = strings.Replace(dns_content, "<MASTER_IP>", fleetMachine.PublicIP, -1)
@@ -153,7 +154,7 @@ func createMasterUnits(fleetMachine *FleetMachine) []string {
 	return createdFiles
 }
 
-func createMinionUnits(masterFleetMachine,
+func CreateMinionUnits(masterFleetMachine,
 	fleetMachine *FleetMachine) []string {
 
 	masterIPPort := fmt.Sprintf("%s:%s",
@@ -313,14 +314,14 @@ func getUnitState(unitFile string) FleetUnitState {
 }
 
 func lowerCasingOfUnitOptionsStr(json_str string) string {
-	json_str = strings.Replace(json_str, "Section", "section", -1)
-	json_str = strings.Replace(json_str, "Name", "name", -1)
-	json_str = strings.Replace(json_str, "Value", "value", -1)
+	json_str = strings.Replace(json_str, "\"Section\"", "\"section\"", -1)
+	json_str = strings.Replace(json_str, "\"Name\"", "\"name\"", -1)
+	json_str = strings.Replace(json_str, "\"Value\"", "\"value\"", -1)
 
 	return json_str
 }
 
-func startUnitFile(unitFile string) {
+func StartUnitFile(unitFile string) {
 	filename := filepath.Base(unitFile)
 	unitFilepath := fmt.Sprintf(
 		"fleet/%s/units/%s", Conf.FleetAPIVersion, filename)
@@ -372,7 +373,7 @@ func startUnitFile(unitFile string) {
 	}
 }
 
-func unitFileCompleted(unitFile string) bool {
+func UnitFileCompleted(unitFile string) bool {
 	filename := filepath.Base(unitFile)
 	dir := filepath.Dir(unitFile)
 
@@ -388,12 +389,12 @@ func unitFileCompleted(unitFile string) bool {
 	return false
 }
 
-func waitUnitFileComplete(unitFile string) {
+func WaitUnitFileComplete(unitFile string) {
 	filename := filepath.Base(unitFile)
 
 	complete := false
 	for !complete {
-		complete = unitFileCompleted(unitFile)
+		complete = UnitFileCompleted(unitFile)
 
 		if !complete {
 			log.Printf("-- Waiting for the following unit file to complete: %s",
